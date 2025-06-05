@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Onboarding Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #333;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test Onboarding Data Fix</h1>
+        <p>This page helps test the onboarding data issue fix by simulating the localStorage data that should be saved during onboarding.</p>
+        
+        <div id="status" class="status info">
+            Ready to test. Click a button below to simulate different scenarios.
+        </div>
+
+        <h3>Test Scenarios:</h3>
+        
+        <button onclick="simulateCompleteOnboarding()">✅ Simulate Complete Onboarding</button>
+        <button onclick="simulateIncompleteOnboarding()">❌ Simulate Incomplete Onboarding</button>
+        <button onclick="clearAllData()">🗑️ Clear All Data</button>
+        <button onclick="checkCurrentData()">🔍 Check Current Data</button>
+        
+        <h3>Navigation:</h3>
+        <button onclick="goToDashboard()">📊 Go to Dashboard</button>
+        <button onclick="goToHome()">🏠 Go to Home</button>
+
+        <h3>Current localStorage Data:</h3>
+        <pre id="dataDisplay">Click "Check Current Data" to see current localStorage contents</pre>
+    </div>
+
+    <script>
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+
+        function simulateCompleteOnboarding() {
+            // Simulate all the individual localStorage keys that onboarding components save
+            localStorage.setItem('userHeight', '175');
+            localStorage.setItem('userWeight', '70');
+            localStorage.setItem('workoutFrequency', '3-5');
+            localStorage.setItem('goal', 'lose');
+            localStorage.setItem('gender', 'male');
+            localStorage.setItem('birthdate', JSON.stringify({
+                month: '6',
+                day: '15',
+                year: '1990'
+            }));
+            
+            // Also simulate the final states that CustomPlan sets
+            localStorage.setItem('isLoggedIn', 'true');
+            
+            // Simulate a nutrition plan (this would normally be calculated)
+            const mockNutritionPlan = {
+                calories: 2200,
+                protein: 154,
+                carbs: 275,
+                fats: 62
+            };
+            localStorage.setItem('nutritionPlan', JSON.stringify(mockNutritionPlan));
+            
+            updateStatus('✅ Complete onboarding data simulated successfully!', 'success');
+            checkCurrentData();
+        }
+
+        function simulateIncompleteOnboarding() {
+            // Clear everything first
+            clearAllData();
+            
+            // Only set some data to simulate incomplete onboarding
+            localStorage.setItem('userHeight', '175');
+            localStorage.setItem('userWeight', '70');
+            // Missing: workoutFrequency, goal, gender, birthdate, isLoggedIn, nutritionPlan
+            
+            updateStatus('❌ Incomplete onboarding data simulated (missing several fields)', 'error');
+            checkCurrentData();
+        }
+
+        function clearAllData() {
+            localStorage.clear();
+            updateStatus('🗑️ All localStorage data cleared', 'info');
+            checkCurrentData();
+        }
+
+        function checkCurrentData() {
+            const data = {
+                userHeight: localStorage.getItem('userHeight'),
+                userWeight: localStorage.getItem('userWeight'),
+                workoutFrequency: localStorage.getItem('workoutFrequency'),
+                goal: localStorage.getItem('goal'),
+                gender: localStorage.getItem('gender'),
+                birthdate: localStorage.getItem('birthdate'),
+                isLoggedIn: localStorage.getItem('isLoggedIn'),
+                nutritionPlan: localStorage.getItem('nutritionPlan'),
+                onboardingData: localStorage.getItem('onboardingData')
+            };
+            
+            document.getElementById('dataDisplay').textContent = JSON.stringify(data, null, 2);
+            
+            // Check if data is complete
+            const hasIndividualData = data.userHeight && data.userWeight && data.workoutFrequency && 
+                                    data.goal && data.gender && data.birthdate;
+            const hasCompletionData = data.isLoggedIn === 'true' && data.nutritionPlan;
+            
+            if (hasIndividualData && hasCompletionData) {
+                updateStatus('✅ Complete onboarding data found - Dashboard should work', 'success');
+            } else if (hasIndividualData) {
+                updateStatus('⚠️ Partial data found - CustomPlan should work but Dashboard might redirect', 'error');
+            } else {
+                updateStatus('❌ Incomplete data - Will show onboarding flow', 'error');
+            }
+        }
+
+        function goToDashboard() {
+            window.location.href = '/dashboard';
+        }
+
+        function goToHome() {
+            window.location.href = '/';
+        }
+
+        // Check data on page load
+        checkCurrentData();
+    </script>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Service Fix Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .fix-summary {
+            background: #e8f5e8;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .error-fixed {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            background: #fafafa;
+        }
+        button {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #333;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+        }
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .before, .after {
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .before {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+        }
+        .after {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Database Service Fix Verification</h1>
+        
+        <div class="error-fixed">
+            <h2>❌ Error Fixed</h2>
+            <p><strong>Original Error:</strong></p>
+            <div class="code-block">
+                Database service initialized - API connection failed<br>
+                ❌ Error creating/updating user profile: ReferenceError: UserProfile is not defined<br>
+                ❌ Error syncing user profile: ReferenceError: UserProfile is not defined
+            </div>
+        </div>
+
+        <div class="fix-summary">
+            <h2>✅ Fix Summary</h2>
+            <p><strong>Root Cause:</strong> Database service was treating localStorage-based classes as Mongoose models</p>
+            <p><strong>Issues Found:</strong></p>
+            <ol>
+                <li><strong>Missing Imports:</strong> UserProfile, FoodLog, UserSession classes were not imported</li>
+                <li><strong>Incorrect Async Usage:</strong> Using await on synchronous localStorage methods</li>
+                <li><strong>Wrong Query Syntax:</strong> Using MongoDB-style queries ($gte, $lte) on localStorage classes</li>
+                <li><strong>Method Misuse:</strong> Calling methods that don't exist or work differently</li>
+            </ol>
+            <p><strong>Solution Applied:</strong></p>
+            <ol>
+                <li>Added proper imports for UserProfile, FoodLog, UserSession classes</li>
+                <li>Removed incorrect await keywords from synchronous methods</li>
+                <li>Replaced MongoDB-style queries with appropriate static methods</li>
+                <li>Fixed method calls to use correct localStorage-based API</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🔄 Before vs After Comparison</h2>
+        
+        <div class="before-after">
+            <div class="before">
+                <h3>❌ Before (Broken)</h3>
+                <div class="code-block">
+                    // Missing imports<br>
+                    import { IUserProfile } from '@/models/User';<br><br>
+                    
+                    // Incorrect async usage<br>
+                    const user = await UserProfile.findOne({ clerkId });<br><br>
+                    
+                    // Wrong query syntax<br>
+                    const logs = await FoodLog.find({<br>
+                    &nbsp;&nbsp;userId,<br>
+                    &nbsp;&nbsp;logDate: { $gte: startDate, $lte: endDate }<br>
+                    });
+                </div>
+            </div>
+            <div class="after">
+                <h3>✅ After (Fixed)</h3>
+                <div class="code-block">
+                    // Proper imports<br>
+                    import { UserProfile, IUserProfile } from '@/models/User';<br><br>
+                    
+                    // Correct synchronous usage<br>
+                    const user = UserProfile.findOne({ clerkId });<br><br>
+                    
+                    // Proper static method usage<br>
+                    const logs = FoodLog.getLogsForDateRange(<br>
+                    &nbsp;&nbsp;userId, startDate, endDate<br>
+                    );
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🧪 Testing Instructions</h2>
+        
+        <div class="test-section">
+            <h3>1. Verify No Console Errors</h3>
+            <p><strong>Test:</strong> Open browser console and check for database-related errors</p>
+            <button onclick="checkConsoleErrors()">🔍 Check Console Status</button>
+            <div id="consoleResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Test Onboarding Data Save</h3>
+            <p><strong>Test:</strong> Complete onboarding and verify data is saved without errors</p>
+            <button onclick="testOnboardingSave()">🆕 Test Onboarding Save</button>
+            <div id="onboardingResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. Test Dashboard Data Sync</h3>
+            <p><strong>Test:</strong> Access dashboard and verify profile sync works</p>
+            <button onclick="testDashboardSync()">📊 Test Dashboard Sync</button>
+            <div id="dashboardResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. Test Profile Data Loading</h3>
+            <p><strong>Test:</strong> Sign out/in and verify profile data loads correctly</p>
+            <button onclick="testProfileLoading()">👤 Test Profile Loading</button>
+            <div id="profileResult"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🛠️ Manual Verification Steps</h2>
+        <div class="info">
+            <h3>To manually verify the fix:</h3>
+            <ol>
+                <li><strong>Open Browser Console:</strong> Press F12 and go to Console tab</li>
+                <li><strong>Complete Onboarding:</strong>
+                    <ul>
+                        <li>Go through complete onboarding flow</li>
+                        <li>Look for "💾 Saving onboarding data to database..." message</li>
+                        <li>Verify "✅ Onboarding data successfully saved to database" appears</li>
+                        <li>Should NOT see "ReferenceError: UserProfile is not defined"</li>
+                    </ul>
+                </li>
+                <li><strong>Access Dashboard:</strong>
+                    <ul>
+                        <li>Navigate to dashboard</li>
+                        <li>Look for "Database service initialized" message</li>
+                        <li>Should NOT see "API connection failed" or "Error syncing user profile"</li>
+                    </ul>
+                </li>
+                <li><strong>Test Data Persistence:</strong>
+                    <ul>
+                        <li>Clear localStorage and sign back in</li>
+                        <li>Look for "📥 Found profile data in database, populating localStorage..."</li>
+                        <li>Verify data loads correctly without errors</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🔧 Utility Actions</h2>
+        <button onclick="goToHome()">🏠 Go to Home</button>
+        <button onclick="goToDashboard()">📊 Go to Dashboard</button>
+        <button onclick="openConsole()">🔍 Open Console</button>
+        <button onclick="clearLocalStorage()">🗑️ Clear localStorage</button>
+    </div>
+
+    <div class="container">
+        <h2>📊 Current Status</h2>
+        <div id="currentStatus"></div>
+    </div>
+
+    <script>
+        function updateResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+
+        function checkConsoleErrors() {
+            updateResult('consoleResult', 
+                '🧪 <strong>Manual Check Required:</strong><br>' +
+                '1. Open browser console (F12)<br>' +
+                '2. Look for any red error messages<br>' +
+                '3. Specifically check for "ReferenceError: UserProfile is not defined"<br>' +
+                '4. If no database errors appear, the fix is working!', 
+                'info');
+        }
+
+        function testOnboardingSave() {
+            updateResult('onboardingResult', 
+                '🧪 <strong>Test Instructions:</strong><br>' +
+                '1. Complete the onboarding flow<br>' +
+                '2. Watch console for "💾 Saving onboarding data to database..."<br>' +
+                '3. Should see "✅ Onboarding data successfully saved to database"<br>' +
+                '4. Should NOT see any "ReferenceError" messages', 
+                'info');
+        }
+
+        function testDashboardSync() {
+            updateResult('dashboardResult', 
+                '🧪 <strong>Test Instructions:</strong><br>' +
+                '1. Navigate to dashboard<br>' +
+                '2. Watch console for database initialization messages<br>' +
+                '3. Should see successful sync messages<br>' +
+                '4. Should NOT see "Error syncing user profile" messages', 
+                'info');
+        }
+
+        function testProfileLoading() {
+            updateResult('profileResult', 
+                '🧪 <strong>Test Instructions:</strong><br>' +
+                '1. Complete onboarding first (if not done)<br>' +
+                '2. Clear localStorage (button below)<br>' +
+                '3. Sign out and sign back in<br>' +
+                '4. Watch console for "📥 Found profile data in database..."<br>' +
+                '5. Verify data loads without errors', 
+                'info');
+        }
+
+        function goToHome() { window.location.href = '/'; }
+        function goToDashboard() { window.location.href = '/dashboard'; }
+        function openConsole() { 
+            alert('Press F12 to open browser console and check for errors'); 
+        }
+        function clearLocalStorage() { 
+            localStorage.clear(); 
+            updateResult('currentStatus', '🗑️ localStorage cleared - test profile loading now', 'warning');
+        }
+
+        function checkCurrentStatus() {
+            const hasOnboardingData = localStorage.getItem('nutritionPlan') && localStorage.getItem('userHeight');
+            
+            if (hasOnboardingData) {
+                updateResult('currentStatus', 
+                    '✅ <strong>Onboarding data found in localStorage</strong><br>' +
+                    'Database service should be working correctly. Check console for any errors.', 
+                    'success');
+            } else {
+                updateResult('currentStatus', 
+                    '❌ <strong>No onboarding data found</strong><br>' +
+                    'Complete onboarding to test database service functionality.', 
+                    'warning');
+            }
+        }
+
+        // Initialize
+        checkCurrentStatus();
+    </script>
+</body>
+</html>

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate Limiting Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #333;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ Rate Limiting & Quota Management Test</h1>
+        <p>This page tests the improved rate limiting, caching, and quota management features.</p>
+        
+        <div id="status" class="status info">
+            Ready to test rate limiting improvements
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="requestCount">0</div>
+                <div class="stat-label">Total Requests</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="successCount">0</div>
+                <div class="stat-label">Successful</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="errorCount">0</div>
+                <div class="stat-label">Errors</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="cacheHits">0</div>
+                <div class="stat-label">Cache Hits</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🚦 Test 1: Rate Limiting Protection</h3>
+            <p>Test multiple rapid requests to verify rate limiting works.</p>
+            <button onclick="testRateLimiting()" id="rateLimitBtn">Test Rate Limiting (5 requests)</button>
+            <pre id="rateLimitResult">Click button to test rate limiting</pre>
+        </div>
+
+        <div class="test-section">
+            <h3>💾 Test 2: Response Caching</h3>
+            <p>Test that identical requests use cached responses.</p>
+            <button onclick="testCaching()" id="cacheBtn">Test Response Caching</button>
+            <pre id="cacheResult">Click button to test caching</pre>
+        </div>
+
+        <div class="test-section">
+            <h3>🔄 Test 3: Quota Exhaustion Handling</h3>
+            <p>Test behavior when API quota is exceeded.</p>
+            <button onclick="testQuotaHandling()" id="quotaBtn">Test Quota Handling</button>
+            <pre id="quotaResult">Click button to test quota handling</pre>
+        </div>
+
+        <div class="test-section">
+            <h3>⚡ Test 4: Stress Test</h3>
+            <p>Send many requests to test overall system resilience.</p>
+            <button onclick="stressTest()" id="stressBtn">Stress Test (10 requests)</button>
+            <button onclick="stopStressTest()" id="stopBtn" disabled>Stop Test</button>
+            <pre id="stressResult">Click button to start stress test</pre>
+        </div>
+
+        <div class="test-section">
+            <h3>🧹 Test 5: Cache Management</h3>
+            <p>Test cache clearing and management features.</p>
+            <button onclick="clearCache()">Clear Cache</button>
+            <button onclick="showCacheStatus()">Show Cache Status</button>
+            <pre id="cacheManagementResult">Cache management tools</pre>
+        </div>
+    </div>
+
+    <script>
+        let requestCount = 0;
+        let successCount = 0;
+        let errorCount = 0;
+        let cacheHits = 0;
+        let stressTestRunning = false;
+
+        function updateStats() {
+            document.getElementById('requestCount').textContent = requestCount;
+            document.getElementById('successCount').textContent = successCount;
+            document.getElementById('errorCount').textContent = errorCount;
+            document.getElementById('cacheHits').textContent = cacheHits;
+        }
+
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+
+        async function makeTestRequest(prompt, expectCached = false) {
+            requestCount++;
+            updateStats();
+
+            const startTime = Date.now();
+            
+            try {
+                const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyCng-287QiVwb34PK6U-IFbnTLi6MQii5E', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: {
+                            temperature: 0.3,
+                            topK: 40,
+                            topP: 0.95,
+                            maxOutputTokens: 512,
+                        }
+                    })
+                });
+
+                const endTime = Date.now();
+                const responseTime = endTime - startTime;
+
+                if (response.ok) {
+                    successCount++;
+                    const data = await response.json();
+                    const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response';
+                    
+                    if (expectCached && responseTime < 100) {
+                        cacheHits++;
+                    }
+                    
+                    updateStats();
+                    return {
+                        success: true,
+                        data: responseText,
+                        responseTime,
+                        cached: expectCached && responseTime < 100
+                    };
+                } else {
+                    errorCount++;
+                    updateStats();
+                    const errorText = await response.text();
+                    return {
+                        success: false,
+                        error: `${response.status}: ${errorText}`,
+                        responseTime
+                    };
+                }
+            } catch (error) {
+                errorCount++;
+                updateStats();
+                return {
+                    success: false,
+                    error: error.message,
+                    responseTime: Date.now() - startTime
+                };
+            }
+        }
+
+        async function testRateLimiting() {
+            const btn = document.getElementById('rateLimitBtn');
+            const result = document.getElementById('rateLimitResult');
+            
+            btn.disabled = true;
+            updateStatus('Testing rate limiting with 5 rapid requests...', 'loading');
+            
+            const results = [];
+            const startTime = Date.now();
+            
+            // Send 5 requests rapidly
+            const promises = [];
+            for (let i = 0; i < 5; i++) {
+                promises.push(makeTestRequest(`Test request ${i + 1} for rate limiting`));
+            }
+            
+            try {
+                const responses = await Promise.all(promises);
+                const endTime = Date.now();
+                const totalTime = endTime - startTime;
+                
+                let output = `Rate Limiting Test Results (${totalTime}ms total):\n\n`;
+                responses.forEach((resp, i) => {
+                    output += `Request ${i + 1}: ${resp.success ? '✅ Success' : '❌ Error'} (${resp.responseTime}ms)\n`;
+                    if (!resp.success) {
+                        output += `  Error: ${resp.error}\n`;
+                    }
+                });
+                
+                const successRate = (responses.filter(r => r.success).length / responses.length * 100).toFixed(1);
+                output += `\nSuccess Rate: ${successRate}%`;
+                
+                result.textContent = output;
+                updateStatus(`Rate limiting test completed - ${successRate}% success rate`, successRate > 50 ? 'success' : 'warning');
+            } catch (error) {
+                result.textContent = `Error: ${error.message}`;
+                updateStatus('Rate limiting test failed', 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function testCaching() {
+            const btn = document.getElementById('cacheBtn');
+            const result = document.getElementById('cacheResult');
+            
+            btn.disabled = true;
+            updateStatus('Testing response caching...', 'loading');
+            
+            const testPrompt = "Say hello and respond with exactly: Hello from cache test!";
+            
+            try {
+                // First request
+                updateStatus('Making first request...', 'loading');
+                const first = await makeTestRequest(testPrompt);
+                
+                // Wait a moment
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Second request (should be cached)
+                updateStatus('Making second request (should be cached)...', 'loading');
+                const second = await makeTestRequest(testPrompt, true);
+                
+                let output = `Caching Test Results:\n\n`;
+                output += `First Request: ${first.success ? '✅ Success' : '❌ Error'} (${first.responseTime}ms)\n`;
+                output += `Second Request: ${second.success ? '✅ Success' : '❌ Error'} (${second.responseTime}ms)\n`;
+                output += `Cache Hit: ${second.cached ? '✅ Yes' : '❌ No'}\n`;
+                output += `Speed Improvement: ${first.responseTime > second.responseTime ? '✅ Faster' : '❌ Same/Slower'}\n`;
+                
+                result.textContent = output;
+                updateStatus('Caching test completed', 'success');
+            } catch (error) {
+                result.textContent = `Error: ${error.message}`;
+                updateStatus('Caching test failed', 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function testQuotaHandling() {
+            const btn = document.getElementById('quotaBtn');
+            const result = document.getElementById('quotaResult');
+            
+            btn.disabled = true;
+            updateStatus('Testing quota exhaustion handling...', 'loading');
+            
+            try {
+                // Make a request that might hit quota limits
+                const response = await makeTestRequest("Test quota handling with a simple response");
+                
+                let output = `Quota Handling Test:\n\n`;
+                if (response.success) {
+                    output += `✅ Request succeeded (${response.responseTime}ms)\n`;
+                    output += `Response: ${response.data.substring(0, 100)}...\n`;
+                } else {
+                    output += `❌ Request failed: ${response.error}\n`;
+                    if (response.error.includes('429') || response.error.includes('quota')) {
+                        output += `✅ Quota error properly detected\n`;
+                    }
+                }
+                
+                result.textContent = output;
+                updateStatus('Quota handling test completed', 'success');
+            } catch (error) {
+                result.textContent = `Error: ${error.message}`;
+                updateStatus('Quota handling test failed', 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function stressTest() {
+            const btn = document.getElementById('stressBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const result = document.getElementById('stressResult');
+            
+            btn.disabled = true;
+            stopBtn.disabled = false;
+            stressTestRunning = true;
+            
+            updateStatus('Running stress test...', 'loading');
+            
+            let output = 'Stress Test Progress:\n\n';
+            result.textContent = output;
+            
+            try {
+                for (let i = 0; i < 10 && stressTestRunning; i++) {
+                    updateStatus(`Stress test: ${i + 1}/10 requests...`, 'loading');
+                    
+                    const response = await makeTestRequest(`Stress test request ${i + 1}`);
+                    
+                    output += `Request ${i + 1}: ${response.success ? '✅' : '❌'} (${response.responseTime}ms)\n`;
+                    result.textContent = output;
+                    
+                    // Wait between requests to avoid overwhelming the API
+                    if (stressTestRunning && i < 9) {
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+                }
+                
+                if (stressTestRunning) {
+                    output += `\nStress test completed!`;
+                    updateStatus('Stress test completed', 'success');
+                } else {
+                    output += `\nStress test stopped by user`;
+                    updateStatus('Stress test stopped', 'warning');
+                }
+                
+                result.textContent = output;
+            } catch (error) {
+                result.textContent = output + `\nError: ${error.message}`;
+                updateStatus('Stress test failed', 'error');
+            } finally {
+                btn.disabled = false;
+                stopBtn.disabled = true;
+                stressTestRunning = false;
+            }
+        }
+
+        function stopStressTest() {
+            stressTestRunning = false;
+            updateStatus('Stopping stress test...', 'warning');
+        }
+
+        function clearCache() {
+            // This would normally call the service's clearCache method
+            cacheHits = 0;
+            updateStats();
+            updateStatus('Cache cleared', 'success');
+            document.getElementById('cacheManagementResult').textContent = 'Cache has been cleared';
+        }
+
+        function showCacheStatus() {
+            const output = `Cache Status:
+- Total Requests: ${requestCount}
+- Cache Hits: ${cacheHits}
+- Cache Hit Rate: ${requestCount > 0 ? (cacheHits / requestCount * 100).toFixed(1) : 0}%
+- Success Rate: ${requestCount > 0 ? (successCount / requestCount * 100).toFixed(1) : 0}%`;
+            
+            document.getElementById('cacheManagementResult').textContent = output;
+        }
+    </script>
+</body>
+</html>

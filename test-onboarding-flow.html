@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onboarding Flow Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        .data-display {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Onboarding Flow Test</h1>
+    <p>This tool tests the onboarding completion logic to ensure users are properly redirected.</p>
+
+    <div class="test-section">
+        <h2>Current State</h2>
+        <div id="currentStatus" class="status">Checking...</div>
+        <pre id="currentData" class="data-display">Loading...</pre>
+        <button onclick="checkCurrentState()">Refresh Status</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Scenarios</h2>
+        
+        <h3>1. Fresh User (No Data)</h3>
+        <button onclick="simulateFreshUser()">Simulate Fresh User</button>
+        <div id="freshUserResult" class="status" style="display: none;"></div>
+        
+        <h3>2. Partial Onboarding</h3>
+        <button onclick="simulatePartialOnboarding()">Simulate Partial Data</button>
+        <div id="partialResult" class="status" style="display: none;"></div>
+        
+        <h3>3. Complete Onboarding</h3>
+        <button onclick="simulateCompleteOnboarding()">Simulate Complete Data</button>
+        <div id="completeResult" class="status" style="display: none;"></div>
+        
+        <h3>4. Clear All Data</h3>
+        <button onclick="clearAllData()">Clear Everything</button>
+        <div id="clearResult" class="status" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Navigation Test</h2>
+        <p>Based on current data, where should the user go?</p>
+        <div id="navigationResult" class="status">Checking...</div>
+        <button onclick="testNavigation()">Test Navigation Logic</button>
+    </div>
+
+    <script>
+        function updateStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+            element.style.display = 'block';
+        }
+
+        function checkOnboardingCompletion() {
+            const nutritionPlan = localStorage.getItem('nutritionPlan');
+            const userHeight = localStorage.getItem('userHeight');
+            const userWeight = localStorage.getItem('userWeight');
+            const workoutFrequency = localStorage.getItem('workoutFrequency');
+            const goal = localStorage.getItem('goal');
+            const gender = localStorage.getItem('gender');
+            const birthdate = localStorage.getItem('birthdate');
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+
+            const hasCompleteProfile = userHeight && userWeight && workoutFrequency && goal && gender && birthdate;
+            const hasNutritionPlan = nutritionPlan && isLoggedIn === 'true';
+
+            return {
+                hasCompleteProfile,
+                hasNutritionPlan,
+                shouldGoToDashboard: hasCompleteProfile && hasNutritionPlan,
+                data: {
+                    userHeight: !!userHeight,
+                    userWeight: !!userWeight,
+                    workoutFrequency: !!workoutFrequency,
+                    goal: !!goal,
+                    gender: !!gender,
+                    birthdate: !!birthdate,
+                    nutritionPlan: !!nutritionPlan,
+                    isLoggedIn
+                }
+            };
+        }
+
+        function checkCurrentState() {
+            const result = checkOnboardingCompletion();
+            
+            if (result.shouldGoToDashboard) {
+                updateStatus('currentStatus', '✅ Complete - Should go to Dashboard', 'success');
+            } else if (result.hasCompleteProfile) {
+                updateStatus('currentStatus', '⚠️ Profile complete but missing nutrition plan - Should stay in onboarding', 'warning');
+            } else {
+                updateStatus('currentStatus', '❌ Incomplete - Should show onboarding flow', 'error');
+            }
+            
+            document.getElementById('currentData').textContent = JSON.stringify(result.data, null, 2);
+        }
+
+        function simulateFreshUser() {
+            // Clear everything
+            localStorage.clear();
+            updateStatus('freshUserResult', '✅ Fresh user simulated - Should show welcome screen', 'success');
+            checkCurrentState();
+        }
+
+        function simulatePartialOnboarding() {
+            localStorage.clear();
+            localStorage.setItem('userHeight', '175');
+            localStorage.setItem('userWeight', '70');
+            localStorage.setItem('workoutFrequency', '3-5');
+            // Missing goal, gender, birthdate, nutrition plan
+            
+            updateStatus('partialResult', '⚠️ Partial onboarding simulated - Should continue onboarding flow', 'warning');
+            checkCurrentState();
+        }
+
+        function simulateCompleteOnboarding() {
+            localStorage.clear();
+            localStorage.setItem('userHeight', '175');
+            localStorage.setItem('userWeight', '70');
+            localStorage.setItem('workoutFrequency', '3-5');
+            localStorage.setItem('goal', 'lose');
+            localStorage.setItem('gender', 'male');
+            localStorage.setItem('birthdate', JSON.stringify({month: '6', day: '15', year: '1990'}));
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('nutritionPlan', JSON.stringify({
+                calories: 2200,
+                protein: 165,
+                carbs: 275,
+                fats: 73
+            }));
+            
+            updateStatus('completeResult', '✅ Complete onboarding simulated - Should go to Dashboard', 'success');
+            checkCurrentState();
+        }
+
+        function clearAllData() {
+            localStorage.clear();
+            updateStatus('clearResult', '✅ All data cleared', 'success');
+            checkCurrentState();
+        }
+
+        function testNavigation() {
+            const result = checkOnboardingCompletion();
+            
+            if (result.shouldGoToDashboard) {
+                updateStatus('navigationResult', '➡️ User should be redirected to /dashboard', 'success');
+            } else {
+                updateStatus('navigationResult', '➡️ User should stay on / (onboarding flow)', 'warning');
+            }
+        }
+
+        // Initialize
+        checkCurrentState();
+        testNavigation();
+    </script>
+</body>
+</html>

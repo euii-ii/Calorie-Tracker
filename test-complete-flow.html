@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Flow Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .step {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .step.completed {
+            border-color: #4caf50;
+            background: #f1f8e9;
+        }
+        .step.current {
+            border-color: #2196f3;
+            background: #e3f2fd;
+        }
+        button {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #333;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .navigation {
+            margin: 20px 0;
+            padding: 20px;
+            background: #e8f5e8;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Complete Onboarding Flow Test</h1>
+        <p>This page simulates the complete onboarding process step by step and tests the data flow.</p>
+        
+        <div id="status" class="status info">
+            Ready to start onboarding simulation
+        </div>
+
+        <div class="step" id="step1">
+            <h3>Step 1: Clear Previous Data</h3>
+            <p>Clear any existing localStorage data to start fresh</p>
+            <button onclick="clearData()">Clear All Data</button>
+        </div>
+
+        <div class="step" id="step2">
+            <h3>Step 2: Simulate Height & Weight Input</h3>
+            <p>Height: 175cm, Weight: 70kg</p>
+            <button onclick="setHeightWeight()" disabled>Set Height & Weight</button>
+        </div>
+
+        <div class="step" id="step3">
+            <h3>Step 3: Simulate Workout Frequency</h3>
+            <p>Workout Frequency: 3-5 days per week</p>
+            <button onclick="setWorkoutFrequency()" disabled>Set Workout Frequency</button>
+        </div>
+
+        <div class="step" id="step4">
+            <h3>Step 4: Simulate Goal Selection</h3>
+            <p>Goal: Lose weight</p>
+            <button onclick="setGoal()" disabled>Set Goal</button>
+        </div>
+
+        <div class="step" id="step5">
+            <h3>Step 5: Simulate Gender Selection</h3>
+            <p>Gender: Male</p>
+            <button onclick="setGender()" disabled>Set Gender</button>
+        </div>
+
+        <div class="step" id="step6">
+            <h3>Step 6: Simulate Birthdate</h3>
+            <p>Birthdate: June 15, 1990 (Age: 34)</p>
+            <button onclick="setBirthdate()" disabled>Set Birthdate</button>
+        </div>
+
+        <div class="step" id="step7">
+            <h3>Step 7: Simulate CustomPlan Completion</h3>
+            <p>Calculate nutrition plan and set completion flags</p>
+            <button onclick="completeOnboarding()" disabled>Complete Onboarding</button>
+        </div>
+
+        <div class="navigation">
+            <h3>Test Navigation:</h3>
+            <button onclick="goToHome()">🏠 Go to Home (Index)</button>
+            <button onclick="goToDashboard()">📊 Go to Dashboard</button>
+            <button onclick="checkData()">🔍 Check Current Data</button>
+        </div>
+
+        <h3>Current localStorage Data:</h3>
+        <pre id="dataDisplay">Click "Check Current Data" to see localStorage contents</pre>
+    </div>
+
+    <script>
+        let currentStep = 0;
+
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+
+        function updateStepStatus(stepNum, status) {
+            const stepEl = document.getElementById(`step${stepNum}`);
+            const button = stepEl.querySelector('button');
+            
+            if (status === 'completed') {
+                stepEl.className = 'step completed';
+                button.disabled = true;
+                button.textContent = '✅ Completed';
+            } else if (status === 'current') {
+                stepEl.className = 'step current';
+                button.disabled = false;
+            } else {
+                stepEl.className = 'step';
+                button.disabled = true;
+            }
+        }
+
+        function enableNextStep() {
+            currentStep++;
+            if (currentStep <= 7) {
+                updateStepStatus(currentStep, 'current');
+            }
+        }
+
+        function clearData() {
+            localStorage.clear();
+            updateStatus('✅ All data cleared. Ready to start onboarding.', 'success');
+            updateStepStatus(1, 'completed');
+            enableNextStep();
+            checkData();
+        }
+
+        function setHeightWeight() {
+            localStorage.setItem('userHeight', '175');
+            localStorage.setItem('userWeight', '70');
+            updateStatus('✅ Height and weight set', 'success');
+            updateStepStatus(2, 'completed');
+            enableNextStep();
+            checkData();
+        }
+
+        function setWorkoutFrequency() {
+            localStorage.setItem('workoutFrequency', '3-5');
+            updateStatus('✅ Workout frequency set', 'success');
+            updateStepStatus(3, 'completed');
+            enableNextStep();
+            checkData();
+        }
+
+        function setGoal() {
+            localStorage.setItem('goal', 'lose');
+            updateStatus('✅ Goal set', 'success');
+            updateStepStatus(4, 'completed');
+            enableNextStep();
+            checkData();
+        }
+
+        function setGender() {
+            localStorage.setItem('gender', 'male');
+            updateStatus('✅ Gender set', 'success');
+            updateStepStatus(5, 'completed');
+            enableNextStep();
+            checkData();
+        }
+
+        function setBirthdate() {
+            localStorage.setItem('birthdate', JSON.stringify({
+                month: '6',
+                day: '15',
+                year: '1990'
+            }));
+            updateStatus('✅ Birthdate set', 'success');
+            updateStepStatus(6, 'completed');
+            enableNextStep();
+            checkData();
+        }
+
+        function completeOnboarding() {
+            // Simulate what CustomPlan does
+            localStorage.setItem('isLoggedIn', 'true');
+            
+            // Create a mock nutrition plan (similar to what calculateNutrition would return)
+            const mockNutritionPlan = {
+                calories: 2200,
+                protein: 154,
+                carbs: 275,
+                fats: 62,
+                debugInfo: {
+                    inputValues: {
+                        height: '175 cm',
+                        weight: '70 kg',
+                        gender: 'male',
+                        age: 34,
+                        workoutFrequency: '3-5',
+                        goal: 'lose'
+                    }
+                }
+            };
+            localStorage.setItem('nutritionPlan', JSON.stringify(mockNutritionPlan));
+            
+            updateStatus('🎉 Onboarding completed! All data saved successfully.', 'success');
+            updateStepStatus(7, 'completed');
+            checkData();
+        }
+
+        function checkData() {
+            const data = {
+                userHeight: localStorage.getItem('userHeight'),
+                userWeight: localStorage.getItem('userWeight'),
+                workoutFrequency: localStorage.getItem('workoutFrequency'),
+                goal: localStorage.getItem('goal'),
+                gender: localStorage.getItem('gender'),
+                birthdate: localStorage.getItem('birthdate'),
+                isLoggedIn: localStorage.getItem('isLoggedIn'),
+                nutritionPlan: localStorage.getItem('nutritionPlan'),
+                onboardingData: localStorage.getItem('onboardingData')
+            };
+            
+            document.getElementById('dataDisplay').textContent = JSON.stringify(data, null, 2);
+        }
+
+        function goToHome() {
+            window.location.href = '/';
+        }
+
+        function goToDashboard() {
+            window.location.href = '/dashboard';
+        }
+
+        // Initialize
+        updateStepStatus(1, 'current');
+        checkData();
+    </script>
+</body>
+</html>

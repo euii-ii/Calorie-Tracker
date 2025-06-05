@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📱 Mobile Camera Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px 0;
+            width: 100%;
+            font-size: 16px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        video {
+            width: 100%;
+            max-height: 300px;
+            border-radius: 5px;
+            background: #000;
+        }
+        .device-info {
+            font-size: 12px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            margin: 10px 0;
+        }
+        .status {
+            font-weight: bold;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Mobile Camera Test</h1>
+        <p>Test camera functionality for mobile deployment</p>
+
+        <!-- Device Info -->
+        <div class="test-section info">
+            <h3>📱 Device Information</h3>
+            <div id="deviceInfo" class="device-info">Loading device info...</div>
+        </div>
+
+        <!-- HTTPS Check -->
+        <div class="test-section" id="httpsSection">
+            <h3>🔒 HTTPS Check</h3>
+            <div id="httpsStatus" class="status">Checking...</div>
+        </div>
+
+        <!-- Camera Support Check -->
+        <div class="test-section" id="supportSection">
+            <h3>📹 Camera Support</h3>
+            <div id="supportStatus" class="status">Checking...</div>
+        </div>
+
+        <!-- Permission Test -->
+        <div class="test-section" id="permissionSection">
+            <h3>🔐 Camera Permission Test</h3>
+            <button onclick="testCameraPermission()">Test Camera Access</button>
+            <div id="permissionStatus" class="status"></div>
+        </div>
+
+        <!-- Camera Preview -->
+        <div class="test-section" id="cameraSection">
+            <h3>📸 Camera Preview</h3>
+            <video id="cameraVideo" style="display: none;" autoplay playsinline muted></video>
+            <button onclick="startCamera()" id="startBtn">Start Camera</button>
+            <button onclick="stopCamera()" id="stopBtn" style="display: none;">Stop Camera</button>
+            <button onclick="capturePhoto()" id="captureBtn" style="display: none;">Capture Photo</button>
+            <div id="cameraStatus" class="status"></div>
+        </div>
+
+        <!-- Capture Result -->
+        <div class="test-section" id="captureSection" style="display: none;">
+            <h3>📷 Captured Photo</h3>
+            <canvas id="captureCanvas" style="width: 100%; max-height: 200px; border: 1px solid #ddd;"></canvas>
+            <div id="captureInfo" class="device-info"></div>
+        </div>
+
+        <!-- Deployment Checklist -->
+        <div class="test-section info">
+            <h3>✅ Deployment Checklist</h3>
+            <div id="deploymentChecklist">
+                <div>🔒 HTTPS: <span id="httpsCheck">❌</span></div>
+                <div>📱 Mobile Browser: <span id="mobileCheck">❌</span></div>
+                <div>📹 Camera Support: <span id="cameraCheck">❌</span></div>
+                <div>🔐 Permissions: <span id="permCheck">❌</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStream = null;
+
+        // Enhanced device detection
+        function detectDevice() {
+            const ua = navigator.userAgent.toLowerCase();
+
+            // Enhanced mobile detection patterns
+            const mobilePatterns = [
+                /android/i, /webos/i, /iphone/i, /ipad/i, /ipod/i,
+                /blackberry/i, /iemobile/i, /opera mini/i, /mobile/i,
+                /tablet/i, /touch/i, /phone/i
+            ];
+
+            // Check multiple indicators for mobile
+            const isMobileUA = mobilePatterns.some(pattern => pattern.test(ua));
+            const isMobileScreen = window.screen.width <= 768 || window.innerWidth <= 768;
+            const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            const isMobile = isMobileUA || (isMobileScreen && isTouchDevice);
+
+            // More specific OS detection
+            const isIOS = /ipad|iphone|ipod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            const isAndroid = /android/.test(ua);
+
+            // Better browser detection
+            const isSafari = /safari/.test(ua) && !/chrome/.test(ua) && !/chromium/.test(ua);
+            const isChrome = /chrome/.test(ua) && !/edge/.test(ua);
+            const isFirefox = /firefox/.test(ua);
+            const isSamsung = /samsungbrowser/.test(ua);
+
+            console.log('🔍 Enhanced device detection:', {
+                userAgent: ua,
+                isMobileUA,
+                isMobileScreen,
+                isTouchDevice,
+                isMobile,
+                isIOS,
+                isAndroid,
+                isSafari,
+                isChrome,
+                isFirefox,
+                isSamsung,
+                touchPoints: navigator.maxTouchPoints,
+                screenSize: `${window.screen.width}x${window.screen.height}`,
+                viewportSize: `${window.innerWidth}x${window.innerHeight}`
+            });
+
+            return {
+                isMobile,
+                isIOS,
+                isAndroid,
+                isSafari,
+                isChrome,
+                isFirefox,
+                isSamsung,
+                userAgent: ua,
+                screen: `${screen.width}x${screen.height}`,
+                viewport: `${window.innerWidth}x${window.innerHeight}`,
+                touchPoints: navigator.maxTouchPoints,
+                isTouchDevice
+            };
+        }
+
+        // Check HTTPS
+        function checkHTTPS() {
+            const isHTTPS = location.protocol === 'https:';
+            const isLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+            
+            const httpsSection = document.getElementById('httpsSection');
+            const httpsStatus = document.getElementById('httpsStatus');
+            const httpsCheck = document.getElementById('httpsCheck');
+
+            if (isHTTPS || isLocalhost) {
+                httpsSection.className = 'test-section success';
+                httpsStatus.textContent = isHTTPS ? '✅ HTTPS Enabled' : '✅ Localhost (OK for testing)';
+                httpsCheck.textContent = '✅';
+            } else {
+                httpsSection.className = 'test-section error';
+                httpsStatus.textContent = '❌ HTTPS Required for mobile camera access';
+                httpsCheck.textContent = '❌';
+            }
+        }
+
+        // Check camera support
+        function checkCameraSupport() {
+            const supportSection = document.getElementById('supportSection');
+            const supportStatus = document.getElementById('supportStatus');
+            const cameraCheck = document.getElementById('cameraCheck');
+
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                supportSection.className = 'test-section success';
+                supportStatus.textContent = '✅ Camera API supported';
+                cameraCheck.textContent = '✅';
+            } else {
+                supportSection.className = 'test-section error';
+                supportStatus.textContent = '❌ Camera API not supported';
+                cameraCheck.textContent = '❌';
+            }
+        }
+
+        // Test camera permission
+        async function testCameraPermission() {
+            const permissionStatus = document.getElementById('permissionStatus');
+            const permissionSection = document.getElementById('permissionSection');
+            const permCheck = document.getElementById('permCheck');
+
+            try {
+                permissionStatus.textContent = '⏳ Requesting camera permission...';
+                
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1280, min: 640 },
+                        height: { ideal: 720, min: 480 }
+                    }
+                });
+
+                // Stop the stream immediately (just testing permission)
+                stream.getTracks().forEach(track => track.stop());
+
+                permissionSection.className = 'test-section success';
+                permissionStatus.textContent = '✅ Camera permission granted';
+                permCheck.textContent = '✅';
+
+            } catch (error) {
+                permissionSection.className = 'test-section error';
+                let errorMsg = '❌ Permission denied: ';
+                
+                if (error.name === 'NotAllowedError') {
+                    errorMsg += 'User denied camera access';
+                } else if (error.name === 'NotFoundError') {
+                    errorMsg += 'No camera found';
+                } else if (error.name === 'NotReadableError') {
+                    errorMsg += 'Camera in use by another app';
+                } else {
+                    errorMsg += error.message;
+                }
+
+                permissionStatus.textContent = errorMsg;
+                permCheck.textContent = '❌';
+            }
+        }
+
+        // Start camera
+        async function startCamera() {
+            const video = document.getElementById('cameraVideo');
+            const cameraStatus = document.getElementById('cameraStatus');
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const captureBtn = document.getElementById('captureBtn');
+
+            try {
+                cameraStatus.textContent = '⏳ Starting camera...';
+
+                currentStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1280, min: 640 },
+                        height: { ideal: 720, min: 480 }
+                    }
+                });
+
+                video.srcObject = currentStream;
+                video.style.display = 'block';
+                
+                startBtn.style.display = 'none';
+                stopBtn.style.display = 'inline-block';
+                captureBtn.style.display = 'inline-block';
+
+                cameraStatus.textContent = '✅ Camera active';
+
+                // Log camera settings
+                const track = currentStream.getVideoTracks()[0];
+                const settings = track.getSettings();
+                console.log('Camera settings:', settings);
+
+            } catch (error) {
+                cameraStatus.textContent = `❌ Camera failed: ${error.message}`;
+            }
+        }
+
+        // Stop camera
+        function stopCamera() {
+            const video = document.getElementById('cameraVideo');
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const captureBtn = document.getElementById('captureBtn');
+
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+
+            video.style.display = 'none';
+            startBtn.style.display = 'inline-block';
+            stopBtn.style.display = 'none';
+            captureBtn.style.display = 'none';
+
+            document.getElementById('cameraStatus').textContent = '📹 Camera stopped';
+        }
+
+        // Capture photo
+        function capturePhoto() {
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.getElementById('captureCanvas');
+            const captureSection = document.getElementById('captureSection');
+            const captureInfo = document.getElementById('captureInfo');
+
+            if (!currentStream || video.readyState < 2) {
+                alert('Camera not ready for capture');
+                return;
+            }
+
+            // Set canvas size to match video
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Draw video frame to canvas
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Show capture section
+            captureSection.style.display = 'block';
+
+            // Show capture info
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            captureInfo.innerHTML = `
+                <strong>Capture Info:</strong><br>
+                Resolution: ${canvas.width}x${canvas.height}<br>
+                Size: ${Math.round(dataUrl.length * 0.75 / 1024)} KB<br>
+                Format: JPEG<br>
+                Timestamp: ${new Date().toLocaleTimeString()}
+            `;
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            // Display device info
+            const device = detectDevice();
+            const deviceInfo = document.getElementById('deviceInfo');
+            const mobileCheck = document.getElementById('mobileCheck');
+
+            deviceInfo.innerHTML = `
+                <strong>Device Type:</strong> ${device.isMobile ? 'Mobile' : 'Desktop'}<br>
+                <strong>OS:</strong> ${device.isIOS ? 'iOS' : device.isAndroid ? 'Android' : 'Other'}<br>
+                <strong>Browser:</strong> ${device.isChrome ? 'Chrome' : device.isSafari ? 'Safari' : 'Other'}<br>
+                <strong>Screen:</strong> ${device.screen}<br>
+                <strong>Viewport:</strong> ${device.viewport}<br>
+                <strong>User Agent:</strong> ${device.userAgent.substring(0, 50)}...
+            `;
+
+            mobileCheck.textContent = device.isMobile ? '✅' : '❌';
+
+            // Run checks
+            checkHTTPS();
+            checkCameraSupport();
+        };
+    </script>
+</body>
+</html>

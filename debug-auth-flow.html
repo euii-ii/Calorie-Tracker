@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Authentication Flow</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .button.danger {
+            background: #dc3545;
+        }
+        .button.danger:hover {
+            background: #c82333;
+        }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .warning { color: #ffc107; font-weight: bold; }
+        .info { color: #17a2b8; font-weight: bold; }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .step {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .step.active {
+            border-color: #007bff;
+            background-color: #f8f9ff;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔐 Debug Authentication Flow</h1>
+    
+    <div class="container">
+        <h2>Quick Actions</h2>
+        <button class="button danger" onclick="clearAllData()">🗑️ Clear All Data</button>
+        <button class="button" onclick="simulateNewUser()">👤 Simulate New User (Signed In, No Data)</button>
+        <button class="button" onclick="simulatePartialUser()">⚠️ Simulate Partial Onboarding</button>
+        <button class="button" onclick="simulateCompleteUser()">✅ Simulate Complete User</button>
+        <button class="button" onclick="checkCurrentState()">🔍 Check Current State</button>
+    </div>
+
+    <div class="container">
+        <h2>Expected Flow for New User After Sign-In</h2>
+        <div class="step" id="step1">
+            <strong>Step 1:</strong> User signs in with Clerk → Redirected to Index page (/)
+        </div>
+        <div class="step" id="step2">
+            <strong>Step 2:</strong> Index page checks onboarding completion → Should find NO data
+        </div>
+        <div class="step" id="step3">
+            <strong>Step 3:</strong> Index page shows OnboardingFlow component
+        </div>
+        <div class="step" id="step4">
+            <strong>Step 4:</strong> OnboardingFlow shows WelcomeScreen with "Get Started" button
+        </div>
+        <div class="step" id="step5">
+            <strong>Step 5:</strong> User clicks "Get Started" → Moves to value-proposition step
+        </div>
+        <div class="step" id="step6">
+            <strong>Step 6:</strong> User completes all onboarding steps → Redirected to Dashboard
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Current State Analysis</h2>
+        <div id="currentState"></div>
+    </div>
+
+    <div class="container">
+        <h2>Test Results</h2>
+        <div id="results"></div>
+    </div>
+
+    <div class="container">
+        <h2>localStorage Data</h2>
+        <pre id="localStorageData"></pre>
+    </div>
+
+    <script>
+        function updateResults(message, type = 'info') {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            results.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+        }
+
+        function clearAllData() {
+            localStorage.clear();
+            updateResults('🗑️ All localStorage data cleared', 'success');
+            checkCurrentState();
+        }
+
+        function simulateNewUser() {
+            // Clear everything first
+            localStorage.clear();
+            
+            // This simulates a user who just signed in but has no onboarding data
+            // (This is what should happen after Clerk sign-in)
+            
+            updateResults('👤 Simulated new user (signed in, no onboarding data)', 'info');
+            updateResults('📍 Expected: Should show onboarding flow, NOT redirect to dashboard', 'warning');
+            checkCurrentState();
+        }
+
+        function simulatePartialUser() {
+            localStorage.clear();
+            
+            // Simulate user who started onboarding but didn't finish
+            localStorage.setItem('userHeight', '175');
+            localStorage.setItem('userWeight', '70');
+            // Missing: workoutFrequency, goal, gender, birthdate, isLoggedIn, nutritionPlan
+            
+            updateResults('⚠️ Simulated partial onboarding user', 'warning');
+            updateResults('📍 Expected: Should show onboarding flow to complete missing data', 'warning');
+            checkCurrentState();
+        }
+
+        function simulateCompleteUser() {
+            localStorage.clear();
+            localStorage.setItem('userHeight', '175');
+            localStorage.setItem('userWeight', '70');
+            localStorage.setItem('workoutFrequency', '3-5');
+            localStorage.setItem('goal', 'lose');
+            localStorage.setItem('gender', 'male');
+            localStorage.setItem('birthdate', JSON.stringify({month: '6', day: '15', year: '1990'}));
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('nutritionPlan', JSON.stringify({
+                calories: 2200,
+                protein: 165,
+                carbs: 275,
+                fats: 73
+            }));
+            
+            updateResults('✅ Simulated complete onboarding user', 'success');
+            updateResults('📍 Expected: Should redirect to dashboard', 'success');
+            checkCurrentState();
+        }
+
+        function checkCurrentState() {
+            const nutritionPlan = localStorage.getItem('nutritionPlan');
+            const userHeight = localStorage.getItem('userHeight');
+            const userWeight = localStorage.getItem('userWeight');
+            const workoutFrequency = localStorage.getItem('workoutFrequency');
+            const goal = localStorage.getItem('goal');
+            const gender = localStorage.getItem('gender');
+            const birthdate = localStorage.getItem('birthdate');
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+
+            const hasCompleteProfile = userHeight && userWeight && workoutFrequency && goal && gender && birthdate;
+            const hasNutritionPlan = nutritionPlan && isLoggedIn === 'true';
+            const isOnboardingComplete = hasCompleteProfile && hasNutritionPlan;
+
+            const state = {
+                isOnboardingComplete,
+                hasCompleteProfile,
+                hasNutritionPlan,
+                data: {
+                    userHeight: !!userHeight,
+                    userWeight: !!userWeight,
+                    workoutFrequency: !!workoutFrequency,
+                    goal: !!goal,
+                    gender: !!gender,
+                    birthdate: !!birthdate,
+                    nutritionPlan: !!nutritionPlan,
+                    isLoggedIn
+                }
+            };
+
+            // Update current state display
+            document.getElementById('currentState').innerHTML = `
+                <div class="${isOnboardingComplete ? 'success' : 'error'}">
+                    <strong>Onboarding Complete:</strong> ${isOnboardingComplete ? 'YES ✅' : 'NO ❌'}
+                </div>
+                <div class="${hasCompleteProfile ? 'success' : 'warning'}">
+                    <strong>Complete Profile:</strong> ${hasCompleteProfile ? 'YES ✅' : 'NO ❌'}
+                </div>
+                <div class="${hasNutritionPlan ? 'success' : 'warning'}">
+                    <strong>Has Nutrition Plan:</strong> ${hasNutritionPlan ? 'YES ✅' : 'NO ❌'}
+                </div>
+                <div class="${isOnboardingComplete ? 'success' : 'info'}">
+                    <strong>Expected Behavior:</strong> ${isOnboardingComplete ? 'Redirect to Dashboard' : 'Show Onboarding Flow'}
+                </div>
+            `;
+
+            // Update localStorage display
+            const allData = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                allData[key] = localStorage.getItem(key);
+            }
+            document.getElementById('localStorageData').textContent = JSON.stringify(allData, null, 2);
+
+            // Update step highlighting
+            document.querySelectorAll('.step').forEach(step => step.classList.remove('active'));
+            
+            if (Object.keys(allData).length === 0) {
+                document.getElementById('step2').classList.add('active');
+                updateResults('📍 Current: Step 2 - Should show onboarding flow', 'info');
+            } else if (!isOnboardingComplete) {
+                document.getElementById('step4').classList.add('active');
+                updateResults('📍 Current: Step 4 - In onboarding process', 'warning');
+            } else {
+                document.getElementById('step6').classList.add('active');
+                updateResults('📍 Current: Step 6 - Should be in dashboard', 'success');
+            }
+
+            return state;
+        }
+
+        // Initialize
+        checkCurrentState();
+        updateResults('🚀 Debug tool initialized', 'info');
+        updateResults('💡 Use the buttons above to test different scenarios', 'info');
+        updateResults('🔗 Then visit http://localhost:8081 to see the actual behavior', 'info');
+    </script>
+</body>
+</html>

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Gemini API Test</h1>
+        <p>This page tests the Gemini API connectivity and functionality.</p>
+
+        <!-- API Key Test -->
+        <div class="test-section info">
+            <h3>🔑 API Key Configuration</h3>
+            <p id="apiKeyStatus">Checking API key...</p>
+            <button onclick="checkApiKey()">Check API Key</button>
+        </div>
+
+        <!-- Connection Test -->
+        <div class="test-section info">
+            <h3>🔗 Connection Test</h3>
+            <p id="connectionStatus">Ready to test connection</p>
+            <button onclick="testConnection()">Test Connection</button>
+        </div>
+
+        <!-- Profile Analysis Test -->
+        <div class="test-section info">
+            <h3>🧠 Profile Analysis Test</h3>
+            <p id="analysisStatus">Ready to test profile analysis</p>
+            <button onclick="testProfileAnalysis()">Test Profile Analysis</button>
+        </div>
+
+        <!-- Results -->
+        <div class="test-section">
+            <h3>📋 Test Results</h3>
+            <pre id="results">No tests run yet...</pre>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = 'AIzaSyCng-287QiVwb34PK6U-IFbnTLi6MQii5E';
+        const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+
+        function log(message) {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            results.textContent += `[${timestamp}] ${message}\n`;
+            console.log(message);
+        }
+
+        function updateStatus(elementId, message, className = '') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.parentElement.className = `test-section ${className}`;
+        }
+
+        function checkApiKey() {
+            log('🔑 Checking API key configuration...');
+            
+            if (!API_KEY || API_KEY === 'your_api_key_here') {
+                updateStatus('apiKeyStatus', '❌ API key not configured', 'error');
+                log('❌ API key is missing or not configured');
+                return;
+            }
+
+            if (API_KEY.length < 30) {
+                updateStatus('apiKeyStatus', '⚠️ API key seems too short', 'error');
+                log('⚠️ API key seems too short (expected 39+ characters)');
+                return;
+            }
+
+            updateStatus('apiKeyStatus', `✅ API key configured (${API_KEY.length} chars)`, 'success');
+            log(`✅ API key is configured with ${API_KEY.length} characters`);
+        }
+
+        async function testConnection() {
+            log('🔗 Testing Gemini API connection...');
+            updateStatus('connectionStatus', '⏳ Testing connection...', 'info');
+
+            try {
+                const response = await fetch(`${API_URL}?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: "Respond with just the word 'connected' if you can read this."
+                            }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.1,
+                            maxOutputTokens: 10
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
+                const data = await response.json();
+                const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (responseText) {
+                    updateStatus('connectionStatus', '✅ Connection successful', 'success');
+                    log(`✅ Connection test successful. Response: "${responseText}"`);
+                } else {
+                    updateStatus('connectionStatus', '⚠️ Connected but no response text', 'error');
+                    log('⚠️ Connected but received no response text');
+                    log(`Full response: ${JSON.stringify(data, null, 2)}`);
+                }
+
+            } catch (error) {
+                updateStatus('connectionStatus', `❌ Connection failed: ${error.message}`, 'error');
+                log(`❌ Connection test failed: ${error.message}`);
+            }
+        }
+
+        async function testProfileAnalysis() {
+            log('🧠 Testing profile analysis...');
+            updateStatus('analysisStatus', '⏳ Testing profile analysis...', 'info');
+
+            const testUserData = {
+                height: "175",
+                weight: "70",
+                birthdate: { month: "6", day: "15", year: "1990" },
+                workoutFrequency: "3-5",
+                goal: "lose",
+                gender: "male"
+            };
+
+            const testNutritionResults = {
+                calories: 2200,
+                protein: 154,
+                carbs: 275,
+                fats: 62,
+                debugInfo: {
+                    calculatedValues: {
+                        bmr: 1800,
+                        tdee: 2500
+                    }
+                }
+            };
+
+            const age = new Date().getFullYear() - 1990;
+            const bmi = 70 / ((175/100) * (175/100));
+
+            const prompt = `You are a certified nutritionist. Analyze this user profile and respond with ONLY a valid JSON object.
+
+USER DATA:
+- Age: ${age} years old
+- Gender: male
+- Height: 175 cm
+- Weight: 70 kg
+- BMI: ${bmi.toFixed(1)}
+- Goal: lose weight
+- Exercise: 3-5 days per week
+
+NUTRITION TARGETS:
+- Daily Calories: 2200 kcal
+- Protein: 154g
+- Carbs: 275g
+- Fats: 62g
+
+Respond with this JSON structure:
+{
+  "healthAssessment": "Brief health assessment",
+  "personalizedTips": ["tip1", "tip2", "tip3"],
+  "warnings": [],
+  "motivationalMessage": "Encouraging message",
+  "nutritionRecommendations": "Nutrition advice",
+  "exerciseRecommendations": "Exercise advice",
+  "lifestyleAdvice": "Lifestyle advice"
+}`;
+
+            try {
+                const response = await fetch(`${API_URL}?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: prompt
+                            }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.3,
+                            maxOutputTokens: 1024
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
+                const data = await response.json();
+                const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (responseText) {
+                    log(`✅ Profile analysis response received (${responseText.length} chars)`);
+                    log(`Response preview: ${responseText.substring(0, 200)}...`);
+                    
+                    // Try to parse as JSON
+                    try {
+                        const cleanText = responseText.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+                        const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+                        const jsonText = jsonMatch ? jsonMatch[0] : cleanText;
+                        const parsed = JSON.parse(jsonText);
+                        
+                        updateStatus('analysisStatus', '✅ Profile analysis successful', 'success');
+                        log('✅ JSON parsing successful');
+                        log(`Health Assessment: ${parsed.healthAssessment}`);
+                        log(`Tips count: ${parsed.personalizedTips?.length || 0}`);
+                    } catch (parseError) {
+                        updateStatus('analysisStatus', '⚠️ Response received but JSON parsing failed', 'error');
+                        log(`⚠️ JSON parsing failed: ${parseError.message}`);
+                        log(`Raw response: ${responseText}`);
+                    }
+                } else {
+                    updateStatus('analysisStatus', '⚠️ No response text received', 'error');
+                    log('⚠️ No response text in API response');
+                    log(`Full response: ${JSON.stringify(data, null, 2)}`);
+                }
+
+            } catch (error) {
+                updateStatus('analysisStatus', `❌ Analysis failed: ${error.message}`, 'error');
+                log(`❌ Profile analysis failed: ${error.message}`);
+            }
+        }
+
+        // Auto-check API key on load
+        window.onload = function() {
+            checkApiKey();
+            log('🚀 Gemini API test page loaded');
+        };
+    </script>
+</body>
+</html>

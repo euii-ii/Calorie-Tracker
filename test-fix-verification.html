@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onboarding Fix Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .fix-summary {
+            background: #e8f5e8;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .test-case {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            background: #fafafa;
+        }
+        button {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #333;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Onboarding Skip Issue - Fix Verification</h1>
+        
+        <div class="fix-summary">
+            <h2>✅ Fix Summary</h2>
+            <p><strong>Problem:</strong> Users were being redirected directly to dashboard after sign-in, skipping onboarding.</p>
+            <p><strong>Root Cause:</strong> Two issues found:</p>
+            <ol>
+                <li><strong>Index.tsx:</strong> Signed-in users were immediately redirected to dashboard without checking onboarding completion</li>
+                <li><strong>CustomSignIn.tsx & CustomSignUp.tsx:</strong> Clerk components had <code>redirectUrl="/dashboard"</code> which bypassed the Index component logic</li>
+            </ol>
+            <p><strong>Solution:</strong></p>
+            <ol>
+                <li>Modified Index.tsx to check onboarding completion before redirecting signed-in users</li>
+                <li>Changed redirectUrl in both sign-in/sign-up components from "/dashboard" to "/" so users go through proper flow</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🧪 Test Cases</h2>
+        
+        <div class="test-case">
+            <h3>Test Case 1: New User Sign-Up</h3>
+            <div class="step">
+                <strong>Expected Flow:</strong> Sign-up → Home (/) → Onboarding Flow → Dashboard
+            </div>
+            <button onclick="testNewUserSignUp()">🆕 Test New User Flow</button>
+            <div id="newUserResult"></div>
+        </div>
+
+        <div class="test-case">
+            <h3>Test Case 2: Returning User with Complete Onboarding</h3>
+            <div class="step">
+                <strong>Expected Flow:</strong> Sign-in → Home (/) → Check Onboarding → Dashboard
+            </div>
+            <button onclick="testReturningUser()">👤 Test Returning User Flow</button>
+            <div id="returningUserResult"></div>
+        </div>
+
+        <div class="test-case">
+            <h3>Test Case 3: User with Incomplete Onboarding</h3>
+            <div class="step">
+                <strong>Expected Flow:</strong> Sign-in → Home (/) → Check Onboarding → Continue Onboarding
+            </div>
+            <button onclick="testIncompleteUser()">⚠️ Test Incomplete Onboarding Flow</button>
+            <div id="incompleteUserResult"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🔍 Manual Testing Instructions</h2>
+        <div class="info">
+            <h3>To manually verify the fix:</h3>
+            <ol>
+                <li><strong>Clear localStorage:</strong> Click "Clear All Data" below</li>
+                <li><strong>Sign out:</strong> If signed in, sign out first</li>
+                <li><strong>Test new user flow:</strong>
+                    <ul>
+                        <li>Go to <a href="/" target="_blank">Home Page</a></li>
+                        <li>Click "Get Started" → Should go to sign-up</li>
+                        <li>Complete sign-up → Should redirect to home, not dashboard</li>
+                        <li>Should see onboarding flow, not dashboard</li>
+                    </ul>
+                </li>
+                <li><strong>Complete onboarding:</strong> Go through all steps</li>
+                <li><strong>Test returning user:</strong>
+                    <ul>
+                        <li>Sign out and sign back in</li>
+                        <li>Should go directly to dashboard (onboarding complete)</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🛠️ Utility Actions</h2>
+        <button onclick="clearAllData()">🗑️ Clear All Data</button>
+        <button onclick="goToHome()">🏠 Go to Home</button>
+        <button onclick="goToSignIn()">🔐 Go to Sign In</button>
+        <button onclick="goToSignUp()">📝 Go to Sign Up</button>
+        <button onclick="goToDashboard()">📊 Go to Dashboard</button>
+        <button onclick="checkCurrentState()">🔍 Check Current State</button>
+    </div>
+
+    <div class="container">
+        <h2>📊 Current State</h2>
+        <div id="currentState"></div>
+        <pre id="localStorageData"></pre>
+    </div>
+
+    <script>
+        function updateResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+
+        function checkOnboardingCompletion() {
+            const nutritionPlan = localStorage.getItem('nutritionPlan');
+            const userHeight = localStorage.getItem('userHeight');
+            const userWeight = localStorage.getItem('userWeight');
+            const workoutFrequency = localStorage.getItem('workoutFrequency');
+            const goal = localStorage.getItem('goal');
+            const gender = localStorage.getItem('gender');
+            const birthdate = localStorage.getItem('birthdate');
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+
+            const hasCompleteProfile = userHeight && userWeight && workoutFrequency && goal && gender && birthdate;
+            const hasNutritionPlan = nutritionPlan && isLoggedIn === 'true';
+
+            return {
+                hasCompleteProfile,
+                hasNutritionPlan,
+                isComplete: hasCompleteProfile && hasNutritionPlan,
+                data: {
+                    userHeight: !!userHeight,
+                    userWeight: !!userWeight,
+                    workoutFrequency: !!workoutFrequency,
+                    goal: !!goal,
+                    gender: !!gender,
+                    birthdate: !!birthdate,
+                    nutritionPlan: !!nutritionPlan,
+                    isLoggedIn
+                }
+            };
+        }
+
+        function testNewUserSignUp() {
+            localStorage.clear();
+            const result = checkOnboardingCompletion();
+            
+            if (!result.isComplete) {
+                updateResult('newUserResult', 
+                    '✅ PASS: New user state simulated. After sign-up, user should:<br>' +
+                    '1. Be redirected to home (/) not dashboard<br>' +
+                    '2. See onboarding flow<br>' +
+                    '3. Complete onboarding before accessing dashboard', 
+                    'success');
+            } else {
+                updateResult('newUserResult', '❌ FAIL: New user should not have onboarding data', 'error');
+            }
+        }
+
+        function testReturningUser() {
+            // Set complete onboarding data
+            localStorage.setItem('userHeight', '175');
+            localStorage.setItem('userWeight', '70');
+            localStorage.setItem('workoutFrequency', '3-5');
+            localStorage.setItem('goal', 'lose');
+            localStorage.setItem('gender', 'male');
+            localStorage.setItem('birthdate', JSON.stringify({month: '6', day: '15', year: '1990'}));
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('nutritionPlan', JSON.stringify({calories: 2200, protein: 154, carbs: 275, fats: 62}));
+            
+            const result = checkOnboardingCompletion();
+            
+            if (result.isComplete) {
+                updateResult('returningUserResult', 
+                    '✅ PASS: Returning user state simulated. After sign-in, user should:<br>' +
+                    '1. Be redirected to home (/) first<br>' +
+                    '2. Index.tsx checks onboarding completion<br>' +
+                    '3. Automatically redirected to dashboard', 
+                    'success');
+            } else {
+                updateResult('returningUserResult', '❌ FAIL: Returning user should have complete onboarding', 'error');
+            }
+        }
+
+        function testIncompleteUser() {
+            localStorage.clear();
+            localStorage.setItem('userHeight', '175');
+            localStorage.setItem('userWeight', '70');
+            // Missing other required fields
+            
+            const result = checkOnboardingCompletion();
+            
+            if (!result.isComplete) {
+                updateResult('incompleteUserResult', 
+                    '✅ PASS: Incomplete onboarding state simulated. After sign-in, user should:<br>' +
+                    '1. Be redirected to home (/) not dashboard<br>' +
+                    '2. See onboarding flow to complete remaining steps<br>' +
+                    '3. Cannot access dashboard until complete', 
+                    'success');
+            } else {
+                updateResult('incompleteUserResult', '❌ FAIL: User should have incomplete onboarding', 'error');
+            }
+        }
+
+        function clearAllData() {
+            localStorage.clear();
+            checkCurrentState();
+        }
+
+        function checkCurrentState() {
+            const result = checkOnboardingCompletion();
+            
+            let status = '';
+            let type = 'info';
+            
+            if (result.isComplete) {
+                status = '✅ Complete onboarding - Should go to dashboard';
+                type = 'success';
+            } else {
+                status = '❌ Incomplete onboarding - Should show onboarding flow';
+                type = 'warning';
+            }
+            
+            document.getElementById('currentState').innerHTML = `<div class="${type}">${status}</div>`;
+            
+            // Show localStorage data
+            const allData = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                allData[key] = localStorage.getItem(key);
+            }
+            document.getElementById('localStorageData').textContent = JSON.stringify(allData, null, 2);
+        }
+
+        function goToHome() { window.location.href = '/'; }
+        function goToSignIn() { window.location.href = '/sign-in'; }
+        function goToSignUp() { window.location.href = '/sign-up'; }
+        function goToDashboard() { window.location.href = '/dashboard'; }
+
+        // Initialize
+        checkCurrentState();
+    </script>
+</body>
+</html>

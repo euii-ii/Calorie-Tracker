@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #333;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .feature-list {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .feature-list h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .feature-list ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .feature-list li {
+            margin: 8px 0;
+            color: #555;
+        }
+        .navigation {
+            margin: 20px 0;
+            padding: 20px;
+            background: #e8f5e8;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 Dashboard Test & Setup</h1>
+        <p>This page helps you test the updated dashboard with the new design changes.</p>
+        
+        <div id="status" class="status info">
+            Ready to test the new dashboard design!
+        </div>
+
+        <div class="feature-list">
+            <h3>✅ New Dashboard Features:</h3>
+            <ul>
+                <li><strong>🗑️ Removed bottom navigation bar</strong> - No more floating camera button</li>
+                <li><strong>🎨 White background with gradient shadow</strong> - Clean, professional look</li>
+                <li><strong>📊 Doughnut charts</strong> - All charts converted to modern doughnut style</li>
+                <li><strong>🎯 Different colors for each chart:</strong>
+                    <ul>
+                        <li>🔥 Calories: Green with fire emoji</li>
+                        <li>🥩 Protein: Red with meat emoji</li>
+                        <li>🌾 Carbs: Amber with wheat emoji</li>
+                        <li>🥑 Fats: Blue with avocado emoji</li>
+                    </ul>
+                </li>
+                <li><strong>✨ Enhanced shadows and hover effects</strong> - Better visual feedback</li>
+                <li><strong>👤 User profile section</strong> - Shows your personal information</li>
+                <li><strong>🤖 AI-Powered Analysis</strong> - Gemini AI analyzes your profile and provides:
+                    <ul>
+                        <li>Personalized health assessment</li>
+                        <li>Custom nutrition recommendations</li>
+                        <li>Exercise guidance</li>
+                        <li>Motivational messages</li>
+                        <li>Health warnings if needed</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+        <div class="navigation">
+            <h3>🧪 Test the Dashboard:</h3>
+            <p>Follow these steps to see the new design:</p>
+            
+            <div style="margin: 20px 0;">
+                <h4>Step 1: Set up test data</h4>
+                <button onclick="setupTestData()">📝 Setup Complete Test Data</button>
+                <p style="font-size: 14px; color: #666; margin: 10px 0;">This will simulate a completed onboarding with sample user data.</p>
+            </div>
+
+            <div style="margin: 20px 0;">
+                <h4>Step 2: Navigate to dashboard</h4>
+                <button onclick="goToDashboard()">📊 Go to Dashboard</button>
+                <p style="font-size: 14px; color: #666; margin: 10px 0;">This will take you to the updated dashboard with the new design.</p>
+            </div>
+
+            <div style="margin: 20px 0;">
+                <h4>Alternative: Start from onboarding</h4>
+                <button onclick="clearDataAndStart()">🏠 Clear Data & Start Fresh</button>
+                <p style="font-size: 14px; color: #666; margin: 10px 0;">This will clear all data and start the onboarding process from the beginning.</p>
+            </div>
+        </div>
+
+        <div class="feature-list">
+            <h3>🔍 What to Look For:</h3>
+            <ul>
+                <li><strong>Background:</strong> Clean white with subtle gradient shadow</li>
+                <li><strong>Charts:</strong> Thick doughnut-style progress rings</li>
+                <li><strong>Colors:</strong> Green calories, red protein, amber carbs, blue fats</li>
+                <li><strong>Icons:</strong> Food-related emojis in the center of each chart</li>
+                <li><strong>No bottom navigation:</strong> Camera button should be removed</li>
+                <li><strong>Enhanced shadows:</strong> Cards should have nice drop shadows</li>
+                <li><strong>User profile:</strong> Your personal info displayed at the top</li>
+                <li><strong>AI Analysis:</strong> During onboarding, you'll see AI analyzing your profile</li>
+                <li><strong>AI Insights:</strong> On dashboard, personalized tips and motivation from AI</li>
+                <li><strong>Smart Recommendations:</strong> Nutrition, exercise, and lifestyle advice</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+
+        function setupTestData() {
+            // Clear any existing data
+            localStorage.clear();
+            
+            // Set up complete onboarding data
+            localStorage.setItem('userHeight', '175');
+            localStorage.setItem('userWeight', '70');
+            localStorage.setItem('workoutFrequency', '3-5');
+            localStorage.setItem('goal', 'lose');
+            localStorage.setItem('gender', 'male');
+            localStorage.setItem('birthdate', JSON.stringify({
+                month: '6',
+                day: '15',
+                year: '1990'
+            }));
+            
+            // Set completion flags
+            localStorage.setItem('isLoggedIn', 'true');
+            
+            // Set nutrition plan
+            const nutritionPlan = {
+                calories: 2200,
+                protein: 154,
+                carbs: 275,
+                fats: 62,
+                debugInfo: {
+                    inputValues: {
+                        height: '175 cm',
+                        weight: '70 kg',
+                        gender: 'male',
+                        age: 34,
+                        workoutFrequency: '3-5',
+                        goal: 'lose'
+                    }
+                }
+            };
+            localStorage.setItem('nutritionPlan', JSON.stringify(nutritionPlan));
+            
+            // Add some sample nutrition logs
+            const sampleLogs = [
+                {
+                    id: '1',
+                    description: 'Grilled chicken breast with vegetables',
+                    health_suggestion: 'Great protein choice!',
+                    calories: 350,
+                    carbs: 15,
+                    protein: 45,
+                    fats: 8,
+                    date: new Date().toISOString().split('T')[0],
+                    timestamp: new Date().toISOString()
+                },
+                {
+                    id: '2',
+                    description: 'Greek yogurt with berries',
+                    health_suggestion: 'Excellent for probiotics!',
+                    calories: 150,
+                    carbs: 20,
+                    protein: 15,
+                    fats: 3,
+                    date: new Date().toISOString().split('T')[0],
+                    timestamp: new Date().toISOString()
+                }
+            ];
+            localStorage.setItem('nutritionLogs', JSON.stringify(sampleLogs));
+            
+            updateStatus('✅ Test data setup complete! You can now go to the dashboard.', 'success');
+        }
+
+        function goToDashboard() {
+            window.location.href = '/dashboard';
+        }
+
+        function clearDataAndStart() {
+            localStorage.clear();
+            updateStatus('🗑️ All data cleared. Starting fresh onboarding process...', 'info');
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

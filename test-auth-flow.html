@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Authentication Flow</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .warning { color: #ffc107; }
+        .info { color: #17a2b8; }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔐 Authentication Flow Test</h1>
+    
+    <div class="container">
+        <h2>Current State</h2>
+        <div id="currentState"></div>
+        <button class="button" onclick="checkCurrentState()">Refresh State</button>
+    </div>
+
+    <div class="container">
+        <h2>Test Actions</h2>
+        <button class="button" onclick="clearAllData()">Clear All Data</button>
+        <button class="button" onclick="simulateSignedInUser()">Simulate Signed In User</button>
+        <button class="button" onclick="simulateCompleteOnboarding()">Simulate Complete Onboarding</button>
+        <button class="button" onclick="testNavigation()">Test Navigation Logic</button>
+    </div>
+
+    <div class="container">
+        <h2>Results</h2>
+        <div id="results"></div>
+    </div>
+
+    <div class="container">
+        <h2>Current localStorage Data</h2>
+        <pre id="localStorageData"></pre>
+    </div>
+
+    <script>
+        function updateResults(message, type = 'info') {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            results.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+        }
+
+        function checkCurrentState() {
+            const nutritionPlan = localStorage.getItem('nutritionPlan');
+            const userHeight = localStorage.getItem('userHeight');
+            const userWeight = localStorage.getItem('userWeight');
+            const workoutFrequency = localStorage.getItem('workoutFrequency');
+            const goal = localStorage.getItem('goal');
+            const gender = localStorage.getItem('gender');
+            const birthdate = localStorage.getItem('birthdate');
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+
+            const hasCompleteProfile = userHeight && userWeight && workoutFrequency && goal && gender && birthdate;
+            const hasNutritionPlan = nutritionPlan && isLoggedIn === 'true';
+
+            const state = {
+                hasCompleteProfile,
+                hasNutritionPlan,
+                shouldGoToDashboard: hasCompleteProfile && hasNutritionPlan,
+                data: {
+                    userHeight: !!userHeight,
+                    userWeight: !!userWeight,
+                    workoutFrequency: !!workoutFrequency,
+                    goal: !!goal,
+                    gender: !!gender,
+                    birthdate: !!birthdate,
+                    nutritionPlan: !!nutritionPlan,
+                    isLoggedIn
+                }
+            };
+
+            document.getElementById('currentState').innerHTML = `
+                <div class="${state.shouldGoToDashboard ? 'success' : 'warning'}">
+                    <strong>Should go to Dashboard:</strong> ${state.shouldGoToDashboard ? 'YES' : 'NO'}
+                </div>
+                <div>Complete Profile: ${state.hasCompleteProfile ? '✅' : '❌'}</div>
+                <div>Has Nutrition Plan: ${state.hasNutritionPlan ? '✅' : '❌'}</div>
+            `;
+
+            // Update localStorage display
+            const allData = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                allData[key] = localStorage.getItem(key);
+            }
+            document.getElementById('localStorageData').textContent = JSON.stringify(allData, null, 2);
+
+            return state;
+        }
+
+        function clearAllData() {
+            localStorage.clear();
+            updateResults('✅ All localStorage data cleared', 'success');
+            checkCurrentState();
+        }
+
+        function simulateSignedInUser() {
+            // Clear first
+            localStorage.clear();
+            
+            // Set partial data (signed in but no onboarding)
+            localStorage.setItem('userHeight', '175');
+            localStorage.setItem('userWeight', '70');
+            // Missing other required fields
+            
+            updateResults('👤 Simulated signed-in user with partial data', 'info');
+            checkCurrentState();
+        }
+
+        function simulateCompleteOnboarding() {
+            localStorage.clear();
+            localStorage.setItem('userHeight', '175');
+            localStorage.setItem('userWeight', '70');
+            localStorage.setItem('workoutFrequency', '3-5');
+            localStorage.setItem('goal', 'lose');
+            localStorage.setItem('gender', 'male');
+            localStorage.setItem('birthdate', JSON.stringify({month: '6', day: '15', year: '1990'}));
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('nutritionPlan', JSON.stringify({
+                calories: 2200,
+                protein: 165,
+                carbs: 275,
+                fats: 73
+            }));
+            
+            updateResults('✅ Simulated complete onboarding', 'success');
+            checkCurrentState();
+        }
+
+        function testNavigation() {
+            const state = checkCurrentState();
+            
+            if (state.shouldGoToDashboard) {
+                updateResults('➡️ User should be redirected to /dashboard', 'success');
+                updateResults('🔗 Try opening: http://localhost:8081/dashboard', 'info');
+            } else {
+                updateResults('➡️ User should stay on / (onboarding flow)', 'warning');
+                updateResults('🔗 Try opening: http://localhost:8081/', 'info');
+            }
+        }
+
+        // Initialize
+        checkCurrentState();
+        updateResults('🚀 Authentication flow test initialized', 'info');
+    </script>
+</body>
+</html>

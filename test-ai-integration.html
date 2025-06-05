@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #333;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI Integration Test</h1>
+        <p>This page tests the Gemini AI integration and helps debug any issues.</p>
+        
+        <div id="status" class="status info">
+            Ready to test AI integration
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 Test 0: Check Available Models</h3>
+            <p>Check which Gemini models are available for the API.</p>
+            <button onclick="listModels()" id="listModelsBtn">List Available Models</button>
+            <pre id="modelsResult">Click "List Available Models" to see available models</pre>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 Test 1: Direct API Call</h3>
+            <p>Test the Gemini API directly with a simple prompt.</p>
+            <button onclick="testDirectAPI()" id="testApiBtn">Test Gemini API</button>
+            <pre id="apiResult">Click "Test Gemini API" to see results</pre>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 Test 2: User Profile Analysis</h3>
+            <p>Test the complete user profile analysis with sample data.</p>
+            <button onclick="testProfileAnalysis()" id="testProfileBtn">Test Profile Analysis</button>
+            <pre id="profileResult">Click "Test Profile Analysis" to see results</pre>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 Test 3: Food Log Analysis</h3>
+            <p>Test the food log analysis with sample nutrition data.</p>
+            <button onclick="testFoodAnalysis()" id="testFoodBtn">Test Food Analysis</button>
+            <pre id="foodResult">Click "Test Food Analysis" to see results</pre>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 Test 4: Complete Onboarding Flow</h3>
+            <p>Set up complete test data and navigate through the app.</p>
+            <button onclick="setupCompleteData()">Setup Test Data</button>
+            <button onclick="goToOnboarding()">Go to Onboarding</button>
+            <button onclick="goToDashboard()">Go to Dashboard</button>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Debug Information</h3>
+            <button onclick="showDebugInfo()">Show Debug Info</button>
+            <pre id="debugInfo">Click "Show Debug Info" to see current localStorage data</pre>
+        </div>
+    </div>
+
+    <script>
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+
+        async function listModels() {
+            const btn = document.getElementById('listModelsBtn');
+            const result = document.getElementById('modelsResult');
+
+            btn.disabled = true;
+            btn.textContent = 'Checking...';
+            updateStatus('Checking available Gemini models...', 'loading');
+
+            try {
+                const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models?key=AIzaSyCng-287QiVwb34PK6U-IFbnTLi6MQii5E');
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API Error: ${response.status} - ${response.statusText}\n${errorText}`);
+                }
+
+                const data = await response.json();
+                console.log('Available Models:', data);
+
+                // Format the models nicely
+                if (data.models && Array.isArray(data.models)) {
+                    const modelList = data.models
+                        .filter(model => model.supportedGenerationMethods?.includes('generateContent'))
+                        .map(model => `• ${model.name} - ${model.displayName || 'No display name'}`)
+                        .join('\n');
+
+                    result.textContent = `✅ Available Models for generateContent:\n\n${modelList}\n\n📄 Full Response:\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    result.textContent = `📄 Raw Response:\n${JSON.stringify(data, null, 2)}`;
+                }
+
+                updateStatus('✅ Successfully retrieved available models!', 'success');
+            } catch (error) {
+                result.textContent = `❌ Error: ${error.message}`;
+                updateStatus('❌ Failed to retrieve models', 'error');
+                console.error('Models list error:', error);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'List Available Models';
+            }
+        }
+
+        async function testDirectAPI() {
+            const btn = document.getElementById('testApiBtn');
+            const result = document.getElementById('apiResult');
+
+            btn.disabled = true;
+            btn.textContent = 'Testing...';
+            updateStatus('Testing improved Gemini API call...', 'loading');
+
+            try {
+                const requestBody = {
+                    contents: [{
+                        parts: [{
+                            text: 'You are a helpful assistant. Respond with ONLY a valid JSON object containing a "message" field with a greeting and a "status" field with "success". No additional text or formatting.'
+                        }]
+                    }],
+                    generationConfig: {
+                        temperature: 0.3,
+                        topK: 40,
+                        topP: 0.95,
+                        maxOutputTokens: 1024,
+                    }
+                };
+
+                const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyCng-287QiVwb34PK6U-IFbnTLi6MQii5E', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API Error: ${response.status} - ${response.statusText}\n${errorText}`);
+                }
+
+                const data = await response.json();
+                console.log('Raw API Response:', data);
+
+                // Extract and parse the response
+                const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (responseText) {
+                    try {
+                        // Try to extract JSON from the response
+                        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+                        if (jsonMatch) {
+                            const parsedJSON = JSON.parse(jsonMatch[0]);
+                            result.textContent = `✅ API Response:\n${JSON.stringify(data, null, 2)}\n\n✅ Extracted JSON:\n${JSON.stringify(parsedJSON, null, 2)}`;
+                        } else {
+                            result.textContent = `✅ API Response:\n${JSON.stringify(data, null, 2)}\n\n⚠️ No JSON found in response text:\n${responseText}`;
+                        }
+                    } catch (parseError) {
+                        result.textContent = `✅ API Response:\n${JSON.stringify(data, null, 2)}\n\n❌ JSON Parse Error:\n${parseError.message}\n\nResponse Text:\n${responseText}`;
+                    }
+                } else {
+                    result.textContent = `❌ No response text found:\n${JSON.stringify(data, null, 2)}`;
+                }
+
+                updateStatus('✅ Direct API call successful!', 'success');
+            } catch (error) {
+                result.textContent = `❌ Error: ${error.message}`;
+                updateStatus('❌ Direct API call failed', 'error');
+                console.error('API test error:', error);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Test Gemini API';
+            }
+        }
+
+        async function testProfileAnalysis() {
+            const btn = document.getElementById('testProfileBtn');
+            const result = document.getElementById('profileResult');
+
+            btn.disabled = true;
+            btn.textContent = 'Analyzing...';
+            updateStatus('Testing improved user profile analysis...', 'loading');
+
+            try {
+                const age = 34;
+                const bmi = 22.9;
+                const height = 175;
+                const weight = 70;
+                const calories = 2200;
+                const protein = 154;
+                const carbs = 275;
+                const fats = 62;
+
+                const prompt = `You are a certified nutritionist and fitness expert. Analyze this user's health profile and provide personalized recommendations.
+
+IMPORTANT: You must respond with ONLY a valid JSON object. No additional text, explanations, or markdown formatting.
+
+USER DATA:
+- Age: ${age} years old
+- Gender: male
+- Height: ${height} cm
+- Weight: ${weight} kg
+- BMI: ${bmi} (normal weight)
+- Primary Goal: lose weight
+- Exercise Frequency: 3-5 days per week
+
+NUTRITION TARGETS:
+- Daily Calories: ${calories} kcal
+- Protein: ${protein}g
+- Carbohydrates: ${carbs}g
+- Fats: ${fats}g
+
+Respond with this exact JSON structure:
+{
+  "healthAssessment": "Professional assessment of their current health status, BMI category, and how their goal aligns with their profile (2-3 sentences)",
+  "personalizedTips": [
+    "Specific tip 1 based on their BMI and goal",
+    "Specific tip 2 based on their exercise frequency",
+    "Specific tip 3 based on their age and gender",
+    "Specific tip 4 based on their nutrition targets"
+  ],
+  "warnings": [],
+  "motivationalMessage": "Encouraging message specifically tailored to their goal and current status",
+  "nutritionRecommendations": "Detailed nutrition advice based on their calculated macros and goal",
+  "exerciseRecommendations": "Exercise suggestions that complement their 3-5 days/week schedule and lose weight goal",
+  "lifestyleAdvice": "Lifestyle recommendations that support their lose weight goal and overall health"
+}`;
+
+                const requestBody = {
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        temperature: 0.3,
+                        topK: 40,
+                        topP: 0.95,
+                        maxOutputTokens: 2048,
+                    }
+                };
+
+                const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyCng-287QiVwb34PK6U-IFbnTLi6MQii5E', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status} - ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                console.log('Profile Analysis Raw Response:', data);
+
+                const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (responseText) {
+                    try {
+                        // Extract JSON from response
+                        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+                        if (jsonMatch) {
+                            const analysis = JSON.parse(jsonMatch[0]);
+                            result.textContent = `✅ Profile Analysis Success!\n\n📊 Extracted Analysis:\n${JSON.stringify(analysis, null, 2)}\n\n📄 Raw API Response:\n${JSON.stringify(data, null, 2)}`;
+                            updateStatus('✅ Profile analysis test successful!', 'success');
+                        } else {
+                            result.textContent = `⚠️ No JSON found in response:\n${responseText}\n\n📄 Raw Response:\n${JSON.stringify(data, null, 2)}`;
+                            updateStatus('⚠️ Profile analysis returned non-JSON response', 'error');
+                        }
+                    } catch (parseError) {
+                        result.textContent = `❌ JSON Parse Error: ${parseError.message}\n\nResponse Text:\n${responseText}\n\n📄 Raw Response:\n${JSON.stringify(data, null, 2)}`;
+                        updateStatus('❌ Failed to parse profile analysis JSON', 'error');
+                    }
+                } else {
+                    result.textContent = `❌ No response text found:\n${JSON.stringify(data, null, 2)}`;
+                    updateStatus('❌ No response text in API response', 'error');
+                }
+            } catch (error) {
+                result.textContent = `❌ Error: ${error.message}`;
+                updateStatus('❌ Profile analysis test failed', 'error');
+                console.error('Profile analysis error:', error);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Test Profile Analysis';
+            }
+        }
+
+        async function testFoodAnalysis() {
+            const btn = document.getElementById('testFoodBtn');
+            const result = document.getElementById('foodResult');
+            
+            btn.disabled = true;
+            btn.textContent = 'Analyzing...';
+            updateStatus('Testing food log analysis...', 'loading');
+            
+            try {
+                const prompt = `Analyze this food intake and respond with JSON:
+
+DAILY TARGETS: 2200 cal, 154g protein, 275g carbs, 62g fats
+FOOD EATEN: 
+- Grilled chicken breast (350 cal, 45g protein, 15g carbs, 8g fats)
+- Greek yogurt with berries (150 cal, 15g protein, 20g carbs, 3g fats)
+
+Respond with JSON: {"overallAssessment": "brief assessment", "whatToEat": ["food1", "food2"], "whatToAvoid": ["avoid1"], "progressFeedback": "encouraging feedback"}`;
+
+                const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyCng-287QiVwb34PK6U-IFbnTLi6MQii5E', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+
+                const data = await response.json();
+                result.textContent = JSON.stringify(data, null, 2);
+                updateStatus('✅ Food analysis test successful!', 'success');
+            } catch (error) {
+                result.textContent = `Error: ${error.message}`;
+                updateStatus('❌ Food analysis test failed', 'error');
+                console.error('Food analysis error:', error);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Test Food Analysis';
+            }
+        }
+
+        function setupCompleteData() {
+            localStorage.clear();
+            
+            // Set up complete onboarding data
+            localStorage.setItem('userHeight', '175');
+            localStorage.setItem('userWeight', '70');
+            localStorage.setItem('workoutFrequency', '3-5');
+            localStorage.setItem('goal', 'lose');
+            localStorage.setItem('gender', 'male');
+            localStorage.setItem('birthdate', JSON.stringify({
+                month: '6', day: '15', year: '1990'
+            }));
+            localStorage.setItem('isLoggedIn', 'true');
+            
+            const nutritionPlan = {
+                calories: 2200, protein: 154, carbs: 275, fats: 62,
+                debugInfo: { calculatedValues: { bmr: 1800, tdee: 2500 } }
+            };
+            localStorage.setItem('nutritionPlan', JSON.stringify(nutritionPlan));
+            
+            // Add sample food logs
+            const sampleLogs = [
+                {
+                    id: '1', description: 'Grilled chicken breast with vegetables',
+                    calories: 350, protein: 45, carbs: 15, fats: 8,
+                    date: new Date().toISOString().split('T')[0],
+                    timestamp: new Date().toISOString()
+                }
+            ];
+            localStorage.setItem('nutritionLogs', JSON.stringify(sampleLogs));
+            
+            updateStatus('✅ Complete test data setup successfully!', 'success');
+        }
+
+        function goToOnboarding() {
+            window.location.href = '/';
+        }
+
+        function goToDashboard() {
+            window.location.href = '/dashboard';
+        }
+
+        function showDebugInfo() {
+            const debugEl = document.getElementById('debugInfo');
+            const data = {
+                userHeight: localStorage.getItem('userHeight'),
+                userWeight: localStorage.getItem('userWeight'),
+                workoutFrequency: localStorage.getItem('workoutFrequency'),
+                goal: localStorage.getItem('goal'),
+                gender: localStorage.getItem('gender'),
+                birthdate: localStorage.getItem('birthdate'),
+                isLoggedIn: localStorage.getItem('isLoggedIn'),
+                nutritionPlan: localStorage.getItem('nutritionPlan'),
+                nutritionLogs: localStorage.getItem('nutritionLogs'),
+                aiAnalysis: localStorage.getItem('aiAnalysis'),
+                lastAiAnalysis: localStorage.getItem('lastAiAnalysis')
+            };
+            debugEl.textContent = JSON.stringify(data, null, 2);
+        }
+    </script>
+</body>
+</html>
