@@ -1,0 +1,12 @@
+{
+  "name": "easy-calorie-guide-api",
+  "version": "1.0.0",
+  "description": "Serverless API functions for Easy Calorie Guide",
+  "main": "health.js",
+  "dependencies": {
+    "mongodb": "^6.3.0"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}

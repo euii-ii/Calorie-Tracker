@@ -1086,7 +1086,7 @@ Remember: Your primary job is to IDENTIFY and ANALYZE food items, not to reject 
         } catch (parseError) {
           console.error('❌ Failed to parse food analysis JSON:', parseError);
           console.log('🔄 Using fallback food analysis...');
-          return this.createFallbackFoodAnalysis();
+          return this.createFallbackImageAnalysis();
         }
       } else {
         console.error('❌ Invalid response structure from Gemini:', data);
@@ -1095,11 +1095,11 @@ Remember: Your primary job is to IDENTIFY and ANALYZE food items, not to reject 
     } catch (error) {
       console.error('❌ Error analyzing food image:', error);
       console.log('🔄 Using fallback food analysis...');
-      return this.createFallbackFoodAnalysis();
+      return this.createFallbackImageAnalysis();
     }
   }
 
-  private createFallbackFoodAnalysis(): any {
+  private createFallbackImageAnalysis(): any {
     return {
       description: "Food item detected (AI analysis temporarily unavailable)",
       health_suggestion: "This appears to be a food item. Please verify nutrition information or try taking another photo with better lighting.",

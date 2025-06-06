@@ -25,8 +25,7 @@ const CustomSignUp = () => {
 
         {/* Clerk SignUp Component */}
         <div className="w-full">
-          <SignUp 
-            fallbackRedirectUrl="/"
+          <SignUp
             appearance={{
               elements: {
                 formButtonPrimary: 'bg-black hover:bg-gray-800 text-white',

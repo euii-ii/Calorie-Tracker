@@ -1,0 +1,81 @@
+const { MongoClient } = require('mongodb');
+
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://eshani:eshanipaul009@cluster0.j0hvfzi.mongodb.net/calorie-tracker';
+let cachedClient = null;
+
+async function connectToDatabase() {
+  if (cachedClient) {
+    return cachedClient;
+  }
+
+  const client = new MongoClient(MONGODB_URI);
+  await client.connect();
+  cachedClient = client;
+  return client;
+}
+
+module.exports = async function handler(req, res) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  try {
+    const client = await connectToDatabase();
+    const db = client.db('calorie-tracker');
+    const collection = db.collection('users');
+
+    const { clerkId } = req.query;
+
+    if (!clerkId) {
+      return res.status(400).json({ error: 'clerkId is required' });
+    }
+
+    if (req.method === 'GET') {
+      // Get user by clerkId
+      const user = await collection.findOne({ clerkId });
+      
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      res.status(200).json(user);
+
+    } else if (req.method === 'PUT') {
+      // Update user
+      const userData = req.body;
+      
+      const result = await collection.findOneAndUpdate(
+        { clerkId },
+        { 
+          $set: {
+            ...userData,
+            updatedAt: new Date()
+          }
+        },
+        { 
+          returnDocument: 'after' 
+        }
+      );
+
+      if (!result.value) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      res.status(200).json(result.value);
+
+    } else {
+      res.status(405).json({ error: 'Method not allowed' });
+    }
+
+  } catch (error) {
+    console.error('Database error:', error);
+    res.status(500).json({ error: 'Database operation failed', details: error.message });
+  }
+}

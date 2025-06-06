@@ -14,6 +14,7 @@ import Results from "./pages/Results";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import MobileCameraTest from "./components/MobileCameraTest";
+import OAuthCallback from "./components/OAuthCallback";
 
 const queryClient = new QueryClient();
 
@@ -68,8 +69,35 @@ const App = () => (
               }
             />
             <Route path="/mobile-camera-test" element={<MobileCameraTest />} />
+
+            {/* Clerk OAuth callback routes - ALL possible OAuth callback URLs */}
+            <Route path="/sso-callback" element={<OAuthCallback />} />
+            <Route path="/sso-callback/*" element={<OAuthCallback />} />
+            <Route path="/verify" element={<OAuthCallback />} />
+            <Route path="/verify/*" element={<OAuthCallback />} />
+            <Route path="/sign-in/sso-callback" element={<OAuthCallback />} />
+            <Route path="/sign-in/sso-callback/*" element={<OAuthCallback />} />
+            <Route path="/sign-in/verify" element={<OAuthCallback />} />
+            <Route path="/sign-in/verify/*" element={<OAuthCallback />} />
+            <Route path="/sign-in/continue" element={<OAuthCallback />} />
+            <Route path="/sign-in/continue/*" element={<OAuthCallback />} />
+            <Route path="/sign-up/sso-callback" element={<OAuthCallback />} />
+            <Route path="/sign-up/sso-callback/*" element={<OAuthCallback />} />
+            <Route path="/sign-up/verify" element={<OAuthCallback />} />
+            <Route path="/sign-up/verify/*" element={<OAuthCallback />} />
+            <Route path="/sign-up/verify-email-address" element={<OAuthCallback />} />
+            <Route path="/sign-up/verify-email-address/*" element={<OAuthCallback />} />
+            <Route path="/sign-up/continue" element={<OAuthCallback />} />
+            <Route path="/sign-up/continue/*" element={<OAuthCallback />} />
+            <Route path="/oauth-callback" element={<OAuthCallback />} />
+            <Route path="/oauth-callback/*" element={<OAuthCallback />} />
+            <Route path="/auth/callback" element={<OAuthCallback />} />
+            <Route path="/auth/callback/*" element={<OAuthCallback />} />
+            <Route path="/auth/sso-callback" element={<OAuthCallback />} />
+            <Route path="/auth/sso-callback/*" element={<OAuthCallback />} />
+
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
+            <Route path="*" element={<Index />} />
           </Routes>
         </BrowserRouter>
       </AuthWrapper>

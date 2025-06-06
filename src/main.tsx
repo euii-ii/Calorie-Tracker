@@ -17,7 +17,6 @@ createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ClerkProvider
       publishableKey={PUBLISHABLE_KEY}
-      afterSignOutUrl="/"
       appearance={{
         elements: {
           formButtonPrimary: 'bg-blue-600 hover:bg-blue-700',
@@ -26,6 +25,12 @@ createRoot(document.getElementById("root")!).render(
       // Custom sign-in and sign-up URLs
       signInUrl="/sign-in"
       signUpUrl="/sign-up"
+      // Allow external accounts
+      allowedRedirectOrigins={[
+        'https://easy-calorie-guide-main.vercel.app',
+        'https://easy-calorie-guide-main-*.vercel.app',
+        window.location.origin
+      ]}
     >
       <App />
     </ClerkProvider>

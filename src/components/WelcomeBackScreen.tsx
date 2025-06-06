@@ -75,6 +75,16 @@ const WelcomeBackScreen = ({ onContinue }: WelcomeBackScreenProps) => {
 
         try {
           console.log('🔄 Saving user data to database:', userData);
+          console.log('🔧 API Service base URL:', apiService);
+
+          // Test API connection first
+          const isConnected = await apiService.testConnection();
+          console.log('🔗 API Connection test:', isConnected);
+
+          if (!isConnected) {
+            console.warn('⚠️ API connection test failed, but proceeding with user creation...');
+          }
+
           const result = await apiService.createOrUpdateUser(userData);
           console.log('✅ User basic info saved to database:', result);
         } catch (dbError: any) {
@@ -82,9 +92,13 @@ const WelcomeBackScreen = ({ onContinue }: WelcomeBackScreenProps) => {
           console.error('⚠️ Error details:', {
             message: dbError.message,
             stack: dbError.stack,
-            userData
+            userData,
+            apiUrl: import.meta.env.VITE_API_URL
           });
-          throw new Error(`Failed to save user information: ${dbError.message || 'Unknown database error'}`);
+
+          // Don't throw error for database save failures during onboarding
+          // Just log the error and continue
+          console.warn('⚠️ Continuing onboarding despite database save failure');
         }
       }
 

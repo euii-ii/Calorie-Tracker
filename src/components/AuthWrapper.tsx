@@ -8,12 +8,26 @@ interface AuthWrapperProps {
 
 // Helper functions for device detection
 const detectSignInMethod = (user: any): string => {
-  // Check if user has external accounts (Google, GitHub, etc.)
-  if (user.externalAccounts && user.externalAccounts.length > 0) {
-    const provider = user.externalAccounts[0].provider;
-    return provider || 'email';
+  try {
+    // Check if user has external accounts (Google, GitHub, etc.)
+    if (user?.externalAccounts && Array.isArray(user.externalAccounts) && user.externalAccounts.length > 0) {
+      const provider = user.externalAccounts[0]?.provider;
+      console.log('🔍 Detected external account provider:', provider);
+      return provider || 'email';
+    }
+
+    // Check if user has email addresses but no external accounts
+    if (user?.emailAddresses && user.emailAddresses.length > 0) {
+      console.log('🔍 User signed in with email');
+      return 'email';
+    }
+
+    console.log('🔍 Fallback to email sign-in method');
+    return 'email';
+  } catch (error) {
+    console.error('❌ Error detecting sign-in method:', error);
+    return 'email';
   }
-  return 'email';
 };
 
 const detectDeviceType = (): string => {

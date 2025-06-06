@@ -61,6 +61,21 @@ mongoose.connect(MONGODB_URI, {
   process.exit(1);
 });
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Easy Calorie Guide API Server',
+    status: 'Running',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: '/api/health',
+      users: '/api/users',
+      sessions: '/api/sessions',
+      foodLogs: '/api/food-logs'
+    }
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
   try {

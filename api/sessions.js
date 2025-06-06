@@ -1,0 +1,132 @@
+const { MongoClient, ObjectId } = require('mongodb');
+
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://eshani:eshanipaul009@cluster0.j0hvfzi.mongodb.net/calorie-tracker';
+let cachedClient = null;
+
+async function connectToDatabase() {
+  if (cachedClient) {
+    return cachedClient;
+  }
+
+  const client = new MongoClient(MONGODB_URI);
+  await client.connect();
+  cachedClient = client;
+  return client;
+}
+
+module.exports = async function handler(req, res) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  try {
+    const client = await connectToDatabase();
+    const db = client.db('calorie-tracker');
+    const collection = db.collection('sessions');
+
+    if (req.method === 'POST') {
+      // Create session
+      const sessionData = {
+        ...req.body,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isActive: true
+      };
+
+      const result = await collection.insertOne(sessionData);
+      const session = await collection.findOne({ _id: result.insertedId });
+      
+      res.status(201).json(session);
+
+    } else if (req.method === 'GET') {
+      // Get sessions with optional filters
+      const { clerkId, days, active } = req.query;
+      
+      let filter = {};
+      
+      if (clerkId) {
+        filter.clerkId = clerkId;
+      }
+      
+      if (days) {
+        const daysAgo = new Date();
+        daysAgo.setDate(daysAgo.getDate() - parseInt(days));
+        filter.createdAt = { $gte: daysAgo };
+      }
+      
+      if (active !== undefined) {
+        filter.isActive = active === 'true';
+      }
+
+      const sessions = await collection.find(filter)
+        .sort({ createdAt: -1 })
+        .toArray();
+      
+      res.status(200).json(sessions);
+
+    } else if (req.method === 'PUT') {
+      // Handle session updates (end session, etc.)
+      const url = req.url;
+      
+      if (url.includes('/end')) {
+        // End session by ID
+        const sessionId = url.split('/')[2]; // Extract ID from URL
+        
+        const result = await collection.findOneAndUpdate(
+          { _id: new ObjectId(sessionId) },
+          { 
+            $set: { 
+              isActive: false, 
+              endedAt: new Date(),
+              updatedAt: new Date()
+            }
+          },
+          { returnDocument: 'after' }
+        );
+        
+        if (!result.value) {
+          return res.status(404).json({ error: 'Session not found' });
+        }
+        
+        res.status(200).json(result.value);
+        
+      } else if (url.includes('/end-by-clerk/')) {
+        // End all sessions for a clerk user
+        const clerkId = url.split('/end-by-clerk/')[1];
+        
+        const result = await collection.updateMany(
+          { clerkId, isActive: true },
+          { 
+            $set: { 
+              isActive: false, 
+              endedAt: new Date(),
+              updatedAt: new Date()
+            }
+          }
+        );
+        
+        res.status(200).json({ 
+          message: `Ended ${result.modifiedCount} sessions`,
+          modifiedCount: result.modifiedCount
+        });
+        
+      } else {
+        res.status(400).json({ error: 'Invalid PUT request' });
+      }
+
+    } else {
+      res.status(405).json({ error: 'Method not allowed' });
+    }
+
+  } catch (error) {
+    console.error('Database error:', error);
+    res.status(500).json({ error: 'Database operation failed', details: error.message });
+  }
+}

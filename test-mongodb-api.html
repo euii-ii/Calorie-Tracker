@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MongoDB API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 MongoDB API Test Suite</h1>
+        <p>Test the MongoDB integration for Easy Calorie Guide</p>
+        
+        <div class="test-section">
+            <h3>🏥 Health Check</h3>
+            <button onclick="testHealthCheck()">Test Health Endpoint</button>
+            <div id="healthResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>👤 User Management</h3>
+            <button onclick="testCreateUser()">Create Test User</button>
+            <button onclick="testGetUser()">Get Test User</button>
+            <div id="userResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📱 Session Management</h3>
+            <button onclick="testCreateSession()">Create Test Session</button>
+            <button onclick="testGetSessions()">Get Sessions</button>
+            <div id="sessionResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🍎 Food Logs</h3>
+            <button onclick="testCreateFoodLog()">Create Test Food Log</button>
+            <button onclick="testGetFoodLogs()">Get Food Logs</button>
+            <div id="foodLogResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 Environment Check</h3>
+            <button onclick="checkEnvironment()">Check Environment Variables</button>
+            <div id="envResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        const TEST_CLERK_ID = 'test_user_' + Date.now();
+        const TEST_USER_ID = 'test_user_id_' + Date.now();
+
+        function updateResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${type}`;
+        }
+
+        async function testHealthCheck() {
+            try {
+                updateResult('healthResult', '🔄 Testing health endpoint...', 'info');
+                
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    updateResult('healthResult', 
+                        `✅ Health Check Passed!\n\n${JSON.stringify(data, null, 2)}`, 
+                        'success');
+                } else {
+                    updateResult('healthResult', 
+                        `❌ Health Check Failed!\n\nStatus: ${response.status}\n${JSON.stringify(data, null, 2)}`, 
+                        'error');
+                }
+            } catch (error) {
+                updateResult('healthResult', 
+                    `❌ Health Check Error!\n\n${error.message}`, 
+                    'error');
+            }
+        }
+
+        async function testCreateUser() {
+            try {
+                updateResult('userResult', '🔄 Creating test user...', 'info');
+                
+                const userData = {
+                    clerkId: TEST_CLERK_ID,
+                    email: 'test@example.com',
+                    name: 'Test User',
+                    age: 25,
+                    height: 170,
+                    weight: 70,
+                    activityLevel: 'moderate'
+                };
+
+                const response = await fetch(`${API_BASE}/users`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    updateResult('userResult', 
+                        `✅ User Created Successfully!\n\n${JSON.stringify(data, null, 2)}`, 
+                        'success');
+                } else {
+                    updateResult('userResult', 
+                        `❌ User Creation Failed!\n\nStatus: ${response.status}\n${JSON.stringify(data, null, 2)}`, 
+                        'error');
+                }
+            } catch (error) {
+                updateResult('userResult', 
+                    `❌ User Creation Error!\n\n${error.message}`, 
+                    'error');
+            }
+        }
+
+        async function testGetUser() {
+            try {
+                updateResult('userResult', '🔄 Getting test user...', 'info');
+                
+                const response = await fetch(`${API_BASE}/users/${TEST_CLERK_ID}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    updateResult('userResult', 
+                        `✅ User Retrieved Successfully!\n\n${JSON.stringify(data, null, 2)}`, 
+                        'success');
+                } else {
+                    updateResult('userResult', 
+                        `❌ User Retrieval Failed!\n\nStatus: ${response.status}\n${JSON.stringify(data, null, 2)}`, 
+                        'error');
+                }
+            } catch (error) {
+                updateResult('userResult', 
+                    `❌ User Retrieval Error!\n\n${error.message}`, 
+                    'error');
+            }
+        }
+
+        async function testCreateSession() {
+            try {
+                updateResult('sessionResult', '🔄 Creating test session...', 'info');
+                
+                const sessionData = {
+                    clerkId: TEST_CLERK_ID,
+                    signInMethod: 'email',
+                    userAgent: navigator.userAgent,
+                    ipAddress: '127.0.0.1'
+                };
+
+                const response = await fetch(`${API_BASE}/sessions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(sessionData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    updateResult('sessionResult', 
+                        `✅ Session Created Successfully!\n\n${JSON.stringify(data, null, 2)}`, 
+                        'success');
+                } else {
+                    updateResult('sessionResult', 
+                        `❌ Session Creation Failed!\n\nStatus: ${response.status}\n${JSON.stringify(data, null, 2)}`, 
+                        'error');
+                }
+            } catch (error) {
+                updateResult('sessionResult', 
+                    `❌ Session Creation Error!\n\n${error.message}`, 
+                    'error');
+            }
+        }
+
+        async function testGetSessions() {
+            try {
+                updateResult('sessionResult', '🔄 Getting sessions...', 'info');
+                
+                const response = await fetch(`${API_BASE}/sessions?clerkId=${TEST_CLERK_ID}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    updateResult('sessionResult', 
+                        `✅ Sessions Retrieved Successfully!\n\n${JSON.stringify(data, null, 2)}`, 
+                        'success');
+                } else {
+                    updateResult('sessionResult', 
+                        `❌ Sessions Retrieval Failed!\n\nStatus: ${response.status}\n${JSON.stringify(data, null, 2)}`, 
+                        'error');
+                }
+            } catch (error) {
+                updateResult('sessionResult', 
+                    `❌ Sessions Retrieval Error!\n\n${error.message}`, 
+                    'error');
+            }
+        }
+
+        async function testCreateFoodLog() {
+            try {
+                updateResult('foodLogResult', '🔄 Creating test food log...', 'info');
+                
+                const foodLogData = {
+                    userId: TEST_USER_ID,
+                    clerkId: TEST_CLERK_ID,
+                    foodName: 'Apple',
+                    calories: 95,
+                    protein: 0.5,
+                    carbs: 25,
+                    fat: 0.3,
+                    mealType: 'snack'
+                };
+
+                const response = await fetch(`${API_BASE}/food-logs`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(foodLogData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    updateResult('foodLogResult', 
+                        `✅ Food Log Created Successfully!\n\n${JSON.stringify(data, null, 2)}`, 
+                        'success');
+                } else {
+                    updateResult('foodLogResult', 
+                        `❌ Food Log Creation Failed!\n\nStatus: ${response.status}\n${JSON.stringify(data, null, 2)}`, 
+                        'error');
+                }
+            } catch (error) {
+                updateResult('foodLogResult', 
+                    `❌ Food Log Creation Error!\n\n${error.message}`, 
+                    'error');
+            }
+        }
+
+        async function testGetFoodLogs() {
+            try {
+                updateResult('foodLogResult', '🔄 Getting food logs...', 'info');
+                
+                const response = await fetch(`${API_BASE}/food-logs/${TEST_USER_ID}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    updateResult('foodLogResult', 
+                        `✅ Food Logs Retrieved Successfully!\n\n${JSON.stringify(data, null, 2)}`, 
+                        'success');
+                } else {
+                    updateResult('foodLogResult', 
+                        `❌ Food Logs Retrieval Failed!\n\nStatus: ${response.status}\n${JSON.stringify(data, null, 2)}`, 
+                        'error');
+                }
+            } catch (error) {
+                updateResult('foodLogResult', 
+                    `❌ Food Logs Retrieval Error!\n\n${error.message}`, 
+                    'error');
+            }
+        }
+
+        function checkEnvironment() {
+            updateResult('envResult', '🔄 Checking environment...', 'info');
+            
+            const envInfo = {
+                currentURL: window.location.href,
+                apiBase: API_BASE,
+                testClerkId: TEST_CLERK_ID,
+                testUserId: TEST_USER_ID,
+                userAgent: navigator.userAgent,
+                timestamp: new Date().toISOString()
+            };
+            
+            updateResult('envResult', 
+                `📋 Environment Information:\n\n${JSON.stringify(envInfo, null, 2)}`, 
+                'info');
+        }
+
+        // Auto-run health check on page load
+        window.addEventListener('load', () => {
+            setTimeout(testHealthCheck, 1000);
+        });
+    </script>
+</body>
+</html>
