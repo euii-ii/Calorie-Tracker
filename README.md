@@ -4,8 +4,8 @@ A comprehensive AI-powered calorie tracking and nutrition analysis application t
 
 ## 🌟 Live Application
 
-**🌐 Frontend:** [https://easy-calorie-guide-main.vercel.app](https://easy-calorie-guide-main.vercel.app)
-**🚂 Backend API:** [https://calorie-tracker-production-77e5.up.railway.app](https://calorie-tracker-production-77e5.up.railway.app)
+**🌐 Frontend:** [https://easy-calorie-guide-main.vercel.app](https://*************.vercel.app)
+**🚂 Backend API:** [https://calorie-tracker-production-77e5.up.railway.app](https://*****-*******-*****-77e5.up.railway.app)
 
 ## 📋 Table of Contents
 
@@ -190,10 +190,10 @@ src/
    Create `.env.local` in the root directory:
    ```env
    # Clerk Authentication
-   VITE_CLERK_PUBLISHABLE_KEY=pk_test_your_clerk_key_here
+   VITE_CLERK_PUBLISHABLE_KEY=your_api_key
 
    # Gemini AI
-   VITE_GEMINI_API_KEY=AIzaSyCng-287QiVwb34PK6U-IFbnTLi6MQii5E
+   VITE_GEMINI_API_KEY=your_api_key
 
    # API Configuration
    VITE_API_URL=http://localhost:3001/api
@@ -325,7 +325,7 @@ For production deployment, ensure all environment variables are set in:
 ## 📚 API Documentation
 
 ### Base URLs
-- **Production**: `https://calorie-tracker-production-77e5.up.railway.app/api`
+- **Production**: `https://*******************p.railway.app/api`
 - **Development**: `http://localhost:3001/api`
 
 ### Authentication
